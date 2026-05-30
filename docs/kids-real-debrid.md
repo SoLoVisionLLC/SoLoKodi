@@ -56,4 +56,4 @@ python3 scripts/build_repo.py
 python3 scripts/verify_repo.py
 ```
 
-The add-on is bundled in the SoLoKodi repository ZIP (`repository.solokodi-0.3.0.zip`).
+The add-on is bundled in the SoLoKodi repository ZIP (`repository.solokodi-0.4.1.zip`).

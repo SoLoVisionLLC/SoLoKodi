@@ -48,6 +48,10 @@ def verify_zips(root: ET.Element) -> None:
             expected = f"{addon_id}/addon.xml"
             if expected not in archive.namelist():
                 fail(f"{zip_path} does not contain {expected}")
+            if addon_id == "plugin.program.solokodi.setup":
+                manifest_entry = f"{addon_id}/resources/builds/kids.json"
+                if manifest_entry not in archive.namelist():
+                    fail(f"{zip_path} does not contain embedded build manifest {manifest_entry}")
     repo_addon = next(addon for addon in root.findall("addon") if addon.attrib["id"] == "repository.solokodi")
     repo_version = repo_addon.attrib["version"]
     public_repo_zip = ROOT / "public" / "solokodi" / f"repository.solokodi-{repo_version}.zip"

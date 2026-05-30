@@ -133,8 +133,9 @@ def main() -> int:
         zip_addon(addon_dir)
 
     addons_xml = build_addons_xml(addon_dirs)
-    (REPO / "addons.xml").write_text(addons_xml, encoding="utf-8")
-    md5 = hashlib.md5(addons_xml.encode("utf-8")).hexdigest()
+    addons_xml_path = REPO / "addons.xml"
+    addons_xml_path.write_text(addons_xml, encoding="utf-8", newline="\n")
+    md5 = hashlib.md5(addons_xml_path.read_bytes()).hexdigest()
     (REPO / "addons.xml.md5").write_text(md5, encoding="utf-8")
 
     for build_path in sorted(BUILDS_SRC.glob("*.json")):
