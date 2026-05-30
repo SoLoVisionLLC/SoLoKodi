@@ -38,7 +38,7 @@ The wizard prompts you to pick Bello or Nimbus during **Choose kids theme**. You
 
 Restart Kodi after setup to see the full theme.
 
-**Note:** Nimbus is not in the official Kodi repository. The setup wizard adds the ivarbrandt file source and installs `repository.ivarbrandt` automatically when you choose Nimbus.
+**Note:** Nimbus is not in the official Kodi repository. The setup wizard adds the ivarbrandt file source, installs `repository.ivarbrandt` from its zip file, then installs Nimbus and `script.nimbus.helper` from that repo.
 
 ## Setup Flow
 

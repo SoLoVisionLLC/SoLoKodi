@@ -209,9 +209,13 @@ def run_change_skin():
             "Your preferred skin was saved.\n\nRestart Kodi if the new look is not visible yet.",
         )
     else:
+        option = build_config.skin_option(skin_id, manifest) or {}
+        label = option.get("label") or skin_id
         xbmcgui.Dialog().ok(
             "Change Kids Skin",
-            "The skin could not be activated automatically.\n\nTry Repair Build or restart Kodi.",
+            "The {0} skin could not be installed.\n\n"
+            "For Nimbus, make sure Kodi can reach ivarbrandt.github.io, then try "
+            "Repair Build or restart Kodi.".format(label),
         )
 
 

@@ -15,7 +15,7 @@ update manifest.
 - [x] Pre-configure Bello home menu and TV/Movies submenus with kids add-ons
 - [x] Force Bello skinshortcuts rebuild (hash invalidation + widget properties)
 - [x] Pre-configure Nimbus home menu widgets via `script.nimbus.helper`
-- [x] Choose Bello or Nimbus skin during setup; switch later from setup menu
+- [x] v0.3.7 — install ivarbrandt repo from zip (fixes Nimbus not appearing in skin list)
 - [x] Apply colorful theme and bright accent colors
 - [x] Kid-themed landing page with playful design
 - [x] Guided setup wizard with progress and optional steps

@@ -89,6 +89,50 @@ def install_addons(entries):
     return installed, failed
 
 
+def install_repository_from_zip(option):
+    repo_id = option.get("repository_id")
+    zip_name = option.get("repository_zip")
+    if not repo_id or not zip_name:
+        return False
+    if addon_installed(repo_id):
+        return True
+
+    repo_url = option.get("repository_url")
+    source_name = option.get("repository_name") or repo_id
+    if repo_url:
+        ensure_file_source(source_name, repo_url)
+
+    xbmc.log(
+        "SoLoKodi: installing {0} from zip {1}".format(repo_id, zip_name),
+        xbmc.LOGINFO,
+    )
+    xbmc.executebuiltin("InstallZip({0},{1})".format(source_name, zip_name), True)
+    if wait_for_addon(repo_id, timeout_ms=90000):
+        return True
+
+    xbmc.log("SoLoKodi: failed to install repo {0} from zip".format(repo_id), xbmc.LOGWARNING)
+    return False
+
+
+def refresh_addon_repositories():
+    xbmc.executebuiltin("UpdateAddonRepos", True)
+    xbmc.sleep(2500)
+
+
+def install_dependencies(dependencies, timeout_ms=60000, required=False):
+    ok = True
+    for dependency in dependencies or []:
+        if addon_installed(dependency):
+            continue
+        if not install_addon(dependency) and not wait_for_addon(dependency, timeout_ms=timeout_ms):
+            xbmc.log(
+                "SoLoKodi: failed to install dependency {0}".format(dependency),
+                xbmc.LOGWARNING,
+            )
+            ok = False
+    return ok if required else True
+
+
 def ensure_file_source(name, url):
     path = xbmcvfs.translatePath("special://profile/sources.xml")
     if not xbmcvfs.exists(path):
@@ -127,34 +171,32 @@ def install_skin_option(option, manifest=None):
         json_rpc("Addons.SetAddonEnabled", {"addonid": skin_id, "enabled": True})
         return True
 
-    for dependency in option.get("dependencies") or []:
-        if addon_installed(dependency):
-            continue
-        if not install_addon(dependency):
-            if not wait_for_addon(dependency, timeout_ms=45000):
-                xbmc.log(
-                    "SoLoKodi: failed to install dependency {0}".format(dependency),
-                    xbmc.LOGWARNING,
-                )
-
     if option.get("official", True):
+        if not install_dependencies(option.get("dependencies"), timeout_ms=45000):
+            return False
         if not install_addon(skin_id):
             if not wait_for_addon(skin_id, timeout_ms=45000):
                 return False
     else:
         repo_id = option.get("repository_id")
-        repo_url = option.get("repository_url")
-        if repo_id and repo_url:
-            ensure_file_source(option.get("repository_name") or repo_id, repo_url)
-            xbmc.executebuiltin("UpdateAddonRepos", True)
-            xbmc.sleep(2000)
-            if not addon_installed(repo_id):
-                xbmc.executebuiltin("InstallAddon({0})".format(repo_id), True)
-                if not wait_for_addon(repo_id, timeout_ms=45000):
+        if repo_id and not addon_installed(repo_id):
+            if option.get("repository_zip"):
+                if not install_repository_from_zip(option):
+                    return False
+            else:
+                repo_url = option.get("repository_url")
+                if repo_url:
+                    ensure_file_source(option.get("repository_name") or repo_id, repo_url)
+                refresh_addon_repositories()
+                if not install_addon(repo_id) and not wait_for_addon(repo_id, timeout_ms=45000):
                     xbmc.log("SoLoKodi: failed to install repo {0}".format(repo_id), xbmc.LOGWARNING)
                     return False
+
+        refresh_addon_repositories()
+        if not install_dependencies(option.get("dependencies"), timeout_ms=90000, required=True):
+            return False
         if not install_addon(skin_id):
-            if not wait_for_addon(skin_id, timeout_ms=45000):
+            if not wait_for_addon(skin_id, timeout_ms=90000):
                 return False
 
     json_rpc("Addons.SetAddonEnabled", {"addonid": skin_id, "enabled": True})

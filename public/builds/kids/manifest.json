@@ -101,7 +101,8 @@
         "official": false,
         "repository_id": "repository.ivarbrandt",
         "repository_name": "ivarbrandt",
-        "repository_url": "https://ivarbrandt.github.io/"
+        "repository_url": "https://ivarbrandt.github.io/",
+        "repository_zip": "repository.ivarbrandt-1.0.3.zip"
       }
     ]
   },
