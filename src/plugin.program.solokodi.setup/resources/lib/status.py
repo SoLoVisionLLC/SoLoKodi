@@ -1,7 +1,7 @@
 import xbmcaddon
 import xbmcvfs
 
-from . import build_config, build_ops
+from . import build_config, build_ops, menu_layout
 
 
 def _addon_entries(kind):
@@ -48,7 +48,8 @@ def step_theme():
 
 def step_favourites():
     setup = xbmcaddon.Addon()
-    if setup.getSetting("setup_complete") == "true":
+    manifest = build_config.load_embedded_manifest()
+    if setup.getSetting("setup_complete") == "true" and menu_layout.menu_files_present(manifest):
         return {"complete": True, "missing": [], "label": "Home shortcuts"}
 
     profile_dir = xbmcvfs.translatePath("special://profile/")
@@ -58,10 +59,17 @@ def step_favourites():
 
     with xbmcvfs.File(target) as handle:
         content = handle.read()
-    complete = "PBS Kids" in content and "SoLoKodi Kids Setup" in content
+    shortcuts_ok = "PBS Kids" in content and "SoLoKodi Kids Setup" in content
+    menu_ok = menu_layout.menu_files_present(manifest)
+    complete = shortcuts_ok and menu_ok
+    missing = []
+    if not shortcuts_ok:
+        missing.append("shortcuts")
+    if not menu_ok:
+        missing.append("home menu")
     return {
         "complete": complete,
-        "missing": [] if complete else ["shortcuts"],
+        "missing": missing,
         "label": "Home shortcuts",
     }
 

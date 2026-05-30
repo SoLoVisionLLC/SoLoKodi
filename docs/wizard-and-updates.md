@@ -21,7 +21,7 @@ offers these actions:
 1. **Install kids sources** — official Kodi add-ons (PBS, TVO, YouTube, etc.)
 2. **Install SoLoKodi add-ons** — Kids Real-Debrid from the SoLoKodi repo
 3. **Apply fun theme** — Bello skin + bright accent colors
-4. **Create home shortcuts** — favourites for every source
+4. **Create shortcuts and home menu** — favourites plus Bello menu items for every kids source
 5. **Connect Real-Debrid** *(optional)* — device authorization flow
 6. **Add TMDb API key** *(optional)* — for Kids Real-Debrid discovery
 

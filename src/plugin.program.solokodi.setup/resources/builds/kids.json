@@ -1,76 +1,81 @@
 {
   "build": {
-    "description": "Every official kids source, fun theme, Real-Debrid kids streaming, and one-tap shortcuts.",
+    "description": "Every official kids source pre-loaded in the home menu, fun theme, Real-Debrid kids streaming, and one-tap shortcuts.",
     "id": "kids",
     "name": "SoLoKodi Kids",
-    "version": "1.1.0"
+    "version": "1.2.0"
   },
   "content_addons": [
     {
       "favourite": "PBS Kids",
       "id": "plugin.video.pbskids",
-      "label": "PBS Kids"
+      "label": "PBS Kids",
+      "menu_group": "tvshows"
     },
     {
       "favourite": "TVO Kids",
       "id": "plugin.video.tvokids",
-      "label": "TV Ontario Kids"
+      "label": "TV Ontario Kids",
+      "menu_group": "tvshows"
     },
     {
       "favourite": "YouTube",
       "id": "plugin.video.youtube",
-      "label": "YouTube"
+      "label": "YouTube",
+      "menu_group": "videos"
     },
     {
       "favourite": "Pluto TV",
       "id": "plugin.video.plutotv",
-      "label": "Pluto TV"
+      "label": "Pluto TV",
+      "menu_group": "livetv"
     },
     {
       "favourite": "NASA Space",
       "id": "plugin.video.nasa",
-      "label": "NASA"
+      "label": "NASA",
+      "menu_group": "videos"
     },
     {
       "favourite": "ESA Space",
       "id": "plugin.video.esa",
-      "label": "ESA"
+      "label": "ESA",
+      "menu_group": "videos"
     },
     {
       "favourite": "CBeebies and CBBC",
       "id": "plugin.video.iplayerwww",
-      "label": "BBC iPlayer"
+      "label": "BBC iPlayer",
+      "menu_group": "tvshows"
     },
     {
       "favourite": "Die Maus",
       "id": "plugin.video.wdrmaus",
-      "label": "WDR Maus"
+      "label": "WDR Maus",
+      "menu_group": "tvshows"
     },
     {
       "favourite": "ZDF Tivi",
       "id": "plugin.video.zdftivi",
-      "label": "ZDF Tivi"
+      "label": "ZDF Tivi",
+      "menu_group": "tvshows"
     }
   ],
-  "generated_at": "2026-05-30T21:24:31Z",
+  "generated_at": "2026-05-30T21:36:10Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/kids/manifest.json",
   "repository": {
     "id": "repository.solokodi",
     "name": "SoLoKodi Kids Repository",
     "url": "https://solokodi.sololink.cloud/repo/addons.xml",
-    "version": "0.4.2"
+    "version": "0.4.3"
   },
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Kids Setup",
-    "version": "0.3.2"
+    "version": "0.3.3"
   },
   "skin": {
     "colors": [
-      [
-        "lookandfeel.skincolor",
-        "FF42A5F5"
-      ],
       [
         "lookandfeel.skincolors",
         "FFFF7043"
@@ -83,6 +88,7 @@
       "favourite": "Kids Real-Debrid",
       "id": "plugin.video.solokodi.kidsrd",
       "label": "SoLoKodi Kids Real-Debrid",
+      "menu_group": "movies",
       "version": "0.1.1"
     }
   ],
@@ -105,7 +111,7 @@
     },
     {
       "id": "favourites",
-      "label": "Create home shortcuts",
+      "label": "Create shortcuts and home menu",
       "required": true
     },
     {

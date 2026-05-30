@@ -25,13 +25,14 @@ repos required.
 Setup applies:
 
 - **Skin:** `skin.bello.10` (colorful tile-based UI from official repo)
-- **Accent colors:** bright blue (`FF42A5F5`) and orange (`FFFF7043`)
+- **Accent colors:** bright orange (`FFFF7043`)
+- **Home menu:** Kids TV Shows, Live Kids TV, Kids Movies, Explore, Favourites — each opens ready-to-browse add-ons
 
 Restart Kodi after setup to see the full theme.
 
 ## Setup Flow
 
-1. Install `repository.solokodi` from the hosted ZIP (`repository.solokodi-0.4.2.zip`).
+1. Install `repository.solokodi` from the hosted ZIP (`repository.solokodi-0.4.3.zip`).
 2. Install `plugin.program.solokodi.setup` from the SoLoKodi repo.
 3. Open **SoLoKodi Kids Setup** and run **Setup Wizard**.
 4. Restart Kodi.

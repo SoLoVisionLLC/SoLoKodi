@@ -53,12 +53,12 @@ def show_menu():
     add_item(
         "Update Build Now",
         "update_build",
-        "Install the latest SoLoKodi repository, add-ons, shortcuts, and theme.",
+        "Install the latest SoLoKodi repository, add-ons, home menu, shortcuts, and theme.",
     )
     add_item(
         "Repair Build",
         "repair",
-        "Re-install missing add-ons and refresh shortcuts and theme without changing settings.",
+        "Re-install missing add-ons and refresh the kids home menu, shortcuts, and theme without changing settings.",
     )
     add_item(
         "Open Kids Real-Debrid",

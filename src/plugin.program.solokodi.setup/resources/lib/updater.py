@@ -7,7 +7,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from . import build_config, build_ops, status, wizard
+from . import build_config, build_ops, menu_layout, status, wizard
 
 
 def notify(message, heading="SoLoKodi Updates"):
@@ -202,6 +202,7 @@ def apply_updates():
     build_ops.install_addons(build_config.solokodi_addons(remote))
     build_ops.apply_theme(remote)
     build_ops.write_favourites(remote)
+    menu_layout.apply_kids_home_menu(remote)
 
     build = remote.get("build") or build_config.build_info(remote)
     setup = xbmcaddon.Addon()

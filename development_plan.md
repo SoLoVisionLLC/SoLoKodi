@@ -8,10 +8,11 @@ update manifest.
 
 ## Completed
 
-### SoLoKodi Kids Build (v1.1.0)
+### SoLoKodi Kids Build (v1.2.0)
 
 - [x] Install all official kids sources from the Kodi repository (9 add-ons)
 - [x] Generate favourites shortcuts for every kids source
+- [x] Pre-configure Bello home menu and TV/Movies submenus with kids add-ons
 - [x] Apply colorful Bello skin and bright accent colors
 - [x] Kid-themed landing page with playful design
 - [x] Guided setup wizard with progress and optional steps

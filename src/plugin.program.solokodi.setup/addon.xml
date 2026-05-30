@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.program.solokodi.setup" name="SoLoKodi Kids Setup" version="0.3.2" provider-name="SoLoVision">
+<addon id="plugin.program.solokodi.setup" name="SoLoKodi Kids Setup" version="0.3.3" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>

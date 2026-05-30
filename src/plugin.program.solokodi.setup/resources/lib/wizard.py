@@ -7,7 +7,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from . import build_config, build_ops, status
+from . import build_config, build_ops, menu_layout, status
 
 
 def notify(message, heading="SoLoKodi Wizard"):
@@ -57,10 +57,11 @@ def run_theme_step(manifest, progress, index, total):
 
 
 def run_favourites_step(manifest, progress, index, total):
-    progress.update(int((index / total) * 100), "Creating home shortcuts...")
+    progress.update(int((index / total) * 100), "Creating shortcuts and kids home menu...")
     build_ops.write_favourites(manifest)
+    menu_ready = menu_layout.apply_kids_home_menu(manifest)
     build_ops.sync_build_settings(manifest)
-    return True
+    return menu_ready
 
 
 def run_realdebrid_step():
@@ -123,8 +124,8 @@ def run_setup_wizard():
             themed = run_theme_step(manifest, progress, index, total)
             results.append((step["label"], themed, [] if themed else ["skin not activated"]))
         elif step_id == "favourites":
-            run_favourites_step(manifest, progress, index, total)
-            results.append((step["label"], True, []))
+            menu_ready = run_favourites_step(manifest, progress, index, total)
+            results.append((step["label"], menu_ready, [] if menu_ready else ["home menu not configured"]))
         elif step_id == "realdebrid":
             progress.close()
             if _step_intro(step):
@@ -164,12 +165,13 @@ def run_quick_repair():
     progress.update(20, "Installing missing add-ons...")
     build_ops.install_addons(build_config.content_addons(manifest))
     build_ops.install_addons(build_config.solokodi_addons(manifest))
-    progress.update(55, "Refreshing theme and shortcuts...")
+    progress.update(55, "Refreshing theme, shortcuts, and home menu...")
     build_ops.apply_theme(manifest)
     build_ops.write_favourites(manifest)
+    menu_layout.apply_kids_home_menu(manifest)
     build_ops.sync_build_settings(manifest)
     progress.update(100, "Done")
     time.sleep(0.3)
     progress.close()
     notify("Build repaired")
-    xbmcgui.Dialog().ok("Repair Build", "Your kids build shortcuts, theme, and add-ons were refreshed.")
+    xbmcgui.Dialog().ok("Repair Build", "Your kids build shortcuts, home menu, theme, and add-ons were refreshed.")

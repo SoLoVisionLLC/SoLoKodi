@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.program.solokodi.setup" name="SoLoKodi Kids Setup" version="0.3.2" provider-name="SoLoVision">
+<addon id="plugin.program.solokodi.setup" name="SoLoKodi Kids Setup" version="0.3.3" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -31,7 +31,7 @@
     <website>https://solokodi.sololink.cloud</website>
   </extension>
 </addon>
-<addon id="repository.solokodi" name="SoLoKodi Kids Repository" version="0.4.2" provider-name="SoLoVision">
+<addon id="repository.solokodi" name="SoLoKodi Kids Repository" version="0.4.3" provider-name="SoLoVision">
   <extension point="xbmc.addon.repository" name="SoLoKodi Kids Repository">
     <dir>
       <info compressed="false">https://solokodi.sololink.cloud/repo/addons.xml</info>
