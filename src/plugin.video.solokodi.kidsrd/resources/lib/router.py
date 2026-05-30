@@ -101,6 +101,7 @@ def show_library(kids_only):
         xbmcgui.Dialog().ok("Kids Library", "Your Real-Debrid library is empty.")
         return
 
+    item_count = 0
     for torrent in torrents:
         title = torrent.get("filename") or torrent.get("original_filename") or "Torrent"
         if kids_only and not looks_like_kids_content(title):
@@ -112,6 +113,7 @@ def show_library(kids_only):
             action="play_torrent",
             torrent_id=torrent.get("id"),
         )
+        item_count += 1
 
     for download in downloads:
         title = download.get("filename") or "Download"
@@ -123,8 +125,9 @@ def show_library(kids_only):
             action="play_download",
             link=download.get("download") or download.get("link"),
         )
+        item_count += 1
 
-    if kids_only and xbmcplugin.getDirectoryItemCount(HANDLE) == 0:
+    if kids_only and item_count == 0:
         xbmcgui.Dialog().ok(
             "Kids Library",
             "Nothing in your Real-Debrid account matched kids keywords yet. "
