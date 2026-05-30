@@ -28,6 +28,10 @@ def _request_json(url, data=None, headers=None, method=None):
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore")
         raise RealDebridError("HTTP {0}: {1}".format(exc.code, detail or exc.reason)) from exc
+    except urllib.error.URLError as exc:
+        raise RealDebridError("Could not reach Real-Debrid. Check your internet connection.") from exc
+    except (TimeoutError, json.JSONDecodeError) as exc:
+        raise RealDebridError("Real-Debrid request failed: {0}".format(exc)) from exc
     if not raw:
         return {}
     return json.loads(raw)

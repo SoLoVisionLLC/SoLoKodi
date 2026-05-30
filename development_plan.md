@@ -28,7 +28,7 @@ update manifest.
 - [x] Repo verification ensures embedded `kids.json` is packaged in setup ZIP
 - [x] Skin activation confirms Kodi dialog and verifies active skin (Bello)
 
-### SoLoKodi Kids Real-Debrid (v0.2.0)
+### SoLoKodi Kids Real-Debrid (v0.2.1)
 
 - [x] Custom `plugin.video.solokodi.kidsrd` add-on
 - [x] Reads RD tokens from setup wizard (with token refresh)
@@ -37,6 +37,9 @@ update manifest.
 - [x] Movie playback via RD cache + YTS/fallback magnet resolver
 - [x] TV playback via RD library match + torrent search fallback
 - [x] Real-Debrid status screen (premium time + TMDb key)
+- [x] v0.2.1 — always call `endOfDirectory` on empty/error paths (fixes library browse failures)
+- [x] v0.2.1 — remove `IsPlayable` on plugin action items (fixes “skipping unplayable item” on Discover)
+- [x] v0.2.1 — catch network/DNS errors; YTS and Apibay mirror fallbacks
 
 ## Next Up
 

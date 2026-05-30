@@ -4,7 +4,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from .constants import APIBAY_API_ROOT, YTS_API_ROOT
+from .constants import APIBAY_API_ROOTS, YTS_API_ROOTS
 from .kids_filter import normalize_title
 
 
@@ -19,6 +19,22 @@ def _request_json(url):
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         raise ResolverError("Lookup failed: HTTP {0}".format(exc.code)) from exc
+    except urllib.error.URLError as exc:
+        raise ResolverError("Could not reach torrent lookup service. Check your internet connection.") from exc
+    except (TimeoutError, json.JSONDecodeError) as exc:
+        raise ResolverError("Torrent lookup failed: {0}".format(exc)) from exc
+
+
+def _request_json_first(urls):
+    errors = []
+    for url in urls:
+        try:
+            return _request_json(url)
+        except ResolverError as exc:
+            errors.append(str(exc))
+    if errors:
+        raise ResolverError(errors[-1])
+    raise ResolverError("No torrent lookup endpoints are available.")
 
 
 def _best_torrent(torrents):
@@ -50,8 +66,9 @@ def _apibay_search(query, categories=None):
     params = {"q": query}
     if categories:
         params["cat"] = categories
-    url = APIBAY_API_ROOT + "?" + urllib.parse.urlencode(params)
-    payload = _request_json(url)
+    query_string = "?" + urllib.parse.urlencode(params)
+    urls = [root + query_string for root in APIBAY_API_ROOTS]
+    payload = _request_json_first(urls)
     if not isinstance(payload, list):
         return []
     return [entry for entry in payload if isinstance(entry, dict) and entry.get("name")]
@@ -114,51 +131,66 @@ def _source_from_apibay(title, year=None, prefer_tv=False):
     return None
 
 
+def _movie_from_yts_payload(payload, title, year):
+    movie = ((payload.get("data") or {}).get("movie")) or {}
+    torrent = _best_torrent(movie.get("torrents") or [])
+    if not torrent:
+        return None
+    return {
+        "title": movie.get("title") or title,
+        "year": movie.get("year") or year,
+        "hash": (torrent.get("hash") or "").lower(),
+        "magnet": _magnet_from_torrent(torrent),
+        "quality": torrent.get("quality") or "",
+        "source": "yts",
+    }
+
+
+def _movie_from_yts_list(payload, title, year):
+    movies = ((payload.get("data") or {}).get("movies")) or []
+    if not movies:
+        return None
+    chosen = movies[0]
+    if year:
+        for movie in movies:
+            if str(movie.get("year")) == str(year):
+                chosen = movie
+                break
+    torrent = _best_torrent(chosen.get("torrents") or [])
+    if not torrent:
+        return None
+    return {
+        "title": chosen.get("title") or title,
+        "year": chosen.get("year") or year,
+        "hash": (torrent.get("hash") or "").lower(),
+        "magnet": _magnet_from_torrent(torrent),
+        "quality": torrent.get("quality") or "",
+        "source": "yts",
+    }
+
+
 def find_movie_magnet(title, year=None, imdb_id=None):
     errors = []
     if imdb_id:
         imdb_id = imdb_id if imdb_id.startswith("tt") else "tt{0}".format(str(imdb_id).zfill(7))
+        query = urllib.parse.urlencode({"imdb_id": imdb_id})
+        urls = ["{0}/movie_details.json?{1}".format(root, query) for root in YTS_API_ROOTS]
         try:
-            url = YTS_API_ROOT + "/movie_details.json?" + urllib.parse.urlencode({"imdb_id": imdb_id})
-            payload = _request_json(url)
-            movie = ((payload.get("data") or {}).get("movie")) or {}
-            torrent = _best_torrent(movie.get("torrents") or [])
-            if torrent:
-                return {
-                    "title": movie.get("title") or title,
-                    "year": movie.get("year") or year,
-                    "hash": (torrent.get("hash") or "").lower(),
-                    "magnet": _magnet_from_torrent(torrent),
-                    "quality": torrent.get("quality") or "",
-                    "source": "yts",
-                }
+            source = _movie_from_yts_payload(_request_json_first(urls), title, year)
+            if source:
+                return source
         except ResolverError as exc:
             errors.append(str(exc))
 
     params = {"query_term": title, "limit": 5}
     if year:
         params["year"] = year
+    query = urllib.parse.urlencode(params)
+    urls = ["{0}/list_movies.json?{1}".format(root, query) for root in YTS_API_ROOTS]
     try:
-        url = YTS_API_ROOT + "/list_movies.json?" + urllib.parse.urlencode(params)
-        payload = _request_json(url)
-        movies = ((payload.get("data") or {}).get("movies")) or []
-        if movies:
-            chosen = movies[0]
-            if year:
-                for movie in movies:
-                    if str(movie.get("year")) == str(year):
-                        chosen = movie
-                        break
-            torrent = _best_torrent(chosen.get("torrents") or [])
-            if torrent:
-                return {
-                    "title": chosen.get("title") or title,
-                    "year": chosen.get("year") or year,
-                    "hash": (torrent.get("hash") or "").lower(),
-                    "magnet": _magnet_from_torrent(torrent),
-                    "quality": torrent.get("quality") or "",
-                    "source": "yts",
-                }
+        source = _movie_from_yts_list(_request_json_first(urls), title, year)
+        if source:
+            return source
     except ResolverError as exc:
         errors.append(str(exc))
 

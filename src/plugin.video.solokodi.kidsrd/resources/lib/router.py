@@ -23,9 +23,13 @@ def build_url(**params):
     return ADDON_URL + "?" + urllib.parse.urlencode(params)
 
 
-def end_directory():
+def finish_directory(succeeded=True):
     xbmcplugin.setContent(HANDLE, "videos")
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, succeeded=succeeded)
+
+
+def end_directory():
+    finish_directory(succeeded=True)
 
 
 def notify(message):
@@ -69,11 +73,10 @@ def add_folder(label, description, **params):
     xbmcplugin.addDirectoryItem(HANDLE, url, item, isFolder=True)
 
 
-def add_playable(label, description, art=None, **params):
+def add_action(label, description, art=None, **params):
     url = build_url(**params)
-    item = xbmcgui.ListItem(label=label, path=url)
+    item = xbmcgui.ListItem(label=label)
     item.setInfo("video", {"title": label, "plot": description})
-    item.setProperty("IsPlayable", "true")
     if art:
         item.setArt(art)
     xbmcplugin.addDirectoryItem(HANDLE, url, item, isFolder=False)
@@ -84,9 +87,11 @@ def show_status():
         user = RealDebridClient().get_user()
     except RealDebridAuthError as exc:
         xbmcgui.Dialog().ok("Real-Debrid Status", str(exc))
+        finish_directory(succeeded=False)
         return
     except RealDebridError as exc:
         xbmcgui.Dialog().ok("Real-Debrid Status", str(exc))
+        finish_directory(succeeded=False)
         return
 
     premium = _premium_seconds(user)
@@ -101,6 +106,7 @@ def show_status():
         "Playback uses your Real-Debrid cache first, then searches for family titles.",
     ]
     xbmcgui.Dialog().ok("Real-Debrid Status", "\n".join(lines))
+    finish_directory(succeeded=False)
 
 
 def show_root_menu():
@@ -147,11 +153,17 @@ def show_root_menu():
 
 def show_library(kids_only):
     if not require_real_debrid():
+        finish_directory(succeeded=False)
         return
 
     rd = RealDebridClient()
-    torrents = rd.list_torrents() or []
-    downloads = rd.list_downloads() or []
+    try:
+        torrents = rd.list_torrents() or []
+        downloads = rd.list_downloads() or []
+    except RealDebridError as exc:
+        xbmcgui.Dialog().ok("Real-Debrid Library", str(exc))
+        finish_directory(succeeded=False)
+        return
 
     if not torrents and not downloads:
         xbmcgui.Dialog().ok(
@@ -159,6 +171,7 @@ def show_library(kids_only):
             "Your Real-Debrid library is empty.\n\n"
             "Try Discover Kids Movies, or add family titles at real-debrid.com first.",
         )
+        finish_directory(succeeded=False)
         return
 
     item_count = 0
@@ -182,7 +195,7 @@ def show_library(kids_only):
         if kids_only and not looks_like_kids_content(title):
             skipped += 1
             continue
-        add_playable(
+        add_action(
             title,
             "Direct download from Real-Debrid.",
             action="play_download",
@@ -199,12 +212,14 @@ def show_library(kids_only):
             )
         else:
             xbmcgui.Dialog().ok("Kids Library", "Nothing matched this view yet.")
+        finish_directory(succeeded=False)
         return
     end_directory()
 
 
 def show_torrent_files(torrent_id):
     if not require_real_debrid():
+        finish_directory(succeeded=False)
         return
 
     player = KidsPlayer()
@@ -212,10 +227,12 @@ def show_torrent_files(torrent_id):
         video_files, info = player.list_video_files(torrent_id)
     except RealDebridError as exc:
         xbmcgui.Dialog().ok("Real-Debrid", str(exc))
+        finish_directory(succeeded=False)
         return
 
     if not video_files:
         xbmcgui.Dialog().ok("Real-Debrid", "No video files are available in this torrent yet.")
+        finish_directory(succeeded=False)
         return
 
     title = info.get("filename") or info.get("original_filename") or "Torrent"
@@ -225,6 +242,7 @@ def show_torrent_files(torrent_id):
             notify("Playing {0}".format(title))
         except RealDebridError as exc:
             xbmcgui.Dialog().ok("Playback", str(exc))
+        finish_directory(succeeded=False)
         return
 
     for video in video_files:
@@ -232,7 +250,7 @@ def show_torrent_files(torrent_id):
         label = os.path.basename(path)
         size_mb = int(int(video.get("bytes") or 0) / (1024 * 1024))
         plot = "{0} — {1} MB".format(title, size_mb) if size_mb else title
-        add_playable(
+        add_action(
             label,
             plot,
             action="play_torrent_file",
@@ -244,12 +262,14 @@ def show_torrent_files(torrent_id):
 
 def show_discover_movies(page):
     if not require_real_debrid():
+        finish_directory(succeeded=False)
         return
 
     try:
         payload = TmdbClient().discover_kids_movies(page=page)
     except TmdbError as exc:
         xbmcgui.Dialog().ok("TMDb Setup", str(exc))
+        finish_directory(succeeded=False)
         return
 
     for movie in payload.get("results") or []:
@@ -258,7 +278,7 @@ def show_discover_movies(page):
         label = "{0} ({1})".format(title, year) if year else title
         plot = movie.get("overview") or ""
         poster = TmdbClient.poster_url(movie.get("poster_path"))
-        add_playable(
+        add_action(
             label,
             plot,
             art={"thumb": poster, "poster": poster},
@@ -274,12 +294,14 @@ def show_discover_movies(page):
 
 def show_discover_tv(page):
     if not require_real_debrid():
+        finish_directory(succeeded=False)
         return
 
     try:
         payload = TmdbClient().discover_kids_tv(page=page)
     except TmdbError as exc:
         xbmcgui.Dialog().ok("TMDb Setup", str(exc))
+        finish_directory(succeeded=False)
         return
 
     for show in payload.get("results") or []:
@@ -288,7 +310,7 @@ def show_discover_tv(page):
         label = "{0} ({1})".format(title, year) if year else title
         plot = (show.get("overview") or "") + "\n\nSearches Real-Debrid first, then tries to find a family-safe torrent."
         poster = TmdbClient.poster_url(show.get("poster_path"))
-        add_playable(
+        add_action(
             label,
             plot,
             art={"thumb": poster, "poster": poster},

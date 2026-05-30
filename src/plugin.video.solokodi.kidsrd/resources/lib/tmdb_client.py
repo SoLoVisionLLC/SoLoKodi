@@ -33,6 +33,10 @@ class TmdbClient:
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="ignore")
             raise TmdbError("TMDb request failed: HTTP {0}".format(exc.code)) from exc
+        except urllib.error.URLError as exc:
+            raise TmdbError("Could not reach TMDb. Check your internet connection.") from exc
+        except (TimeoutError, json.JSONDecodeError) as exc:
+            raise TmdbError("TMDb request failed: {0}".format(exc)) from exc
 
     def discover_kids_movies(self, page=1):
         return self._request(
