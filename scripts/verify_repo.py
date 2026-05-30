@@ -8,6 +8,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
 PUBLIC = ROOT / "public"
 REPO = PUBLIC / "repo"
 SECRET_MARKERS = ("auth_token=", "SOLOVISION_COOLIFY_API_TOKEN")
@@ -55,6 +56,13 @@ def verify_zips(root: ET.Element) -> None:
     legacy_root_zip = ROOT / "public" / f"repository.solokodi-{repo_version}.zip"
     if legacy_root_zip.exists():
         fail("legacy root-level repository ZIP should redirect, not exist as a file")
+
+    manifest_path = PUBLIC / "builds" / "kids" / "manifest.json"
+    if not manifest_path.exists():
+        fail("public/builds/kids/manifest.json is missing — run build_repo.py")
+    embedded_manifest = SRC / "plugin.program.solokodi.setup" / "resources" / "builds" / "kids.json"
+    if not embedded_manifest.exists():
+        fail("embedded build manifest is missing from setup add-on resources")
 
 
 def verify_no_embedded_secrets() -> None:

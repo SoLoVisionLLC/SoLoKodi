@@ -3,43 +3,19 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-import xml.sax.saxutils
 
 import xbmc
 import xbmcaddon
 import xbmcgui
-import xbmcvfs
+
+from . import wizard
 
 ADDON = xbmcaddon.Addon()
-BUILD_PROFILE = "kids"
 CLIENT_ID = "X245A4XAIBGVM"
 DEVICE_URL = "https://api.real-debrid.com/oauth/v2/device/code"
 CREDENTIALS_URL = "https://api.real-debrid.com/oauth/v2/device/credentials"
 TOKEN_URL = "https://api.real-debrid.com/oauth/v2/token"
 API_ROOT = "https://api.real-debrid.com/rest/1.0"
-
-# Official Kodi repo add-ons with kids, family, or educational content.
-KIDS_ADDONS = [
-    ("plugin.video.pbskids", "PBS Kids", "PBS Kids"),
-    ("plugin.video.tvokids", "TV Ontario Kids", "TVO Kids"),
-    ("plugin.video.youtube", "YouTube", "YouTube"),
-    ("plugin.video.plutotv", "Pluto TV", "Pluto TV"),
-    ("plugin.video.nasa", "NASA", "NASA Space"),
-    ("plugin.video.esa", "ESA", "ESA Space"),
-    ("plugin.video.iplayerwww", "BBC iPlayer", "CBeebies and CBBC"),
-    ("plugin.video.wdrmaus", "WDR Maus", "Die Maus"),
-    ("plugin.video.zdftivi", "ZDF Tivi", "ZDF Tivi"),
-]
-
-SOLOKODI_ADDONS = [
-    ("plugin.video.solokodi.kidsrd", "SoLoKodi Kids Real-Debrid", "Kids Real-Debrid"),
-]
-
-KIDS_SKIN = "skin.bello.10"
-KIDS_THEME_COLORS = [
-    ("lookandfeel.skincolor", "FF42A5F5"),
-    ("lookandfeel.skincolors", "FFFF7043"),
-]
 
 
 def notify(message, heading="SoLoKodi Kids"):
@@ -56,100 +32,8 @@ def request_json(url, data=None, headers=None):
     return json.loads(raw) if raw else {}
 
 
-def json_rpc(method, params=None):
-    payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params or {}}
-    result = xbmc.executeJSONRPC(json.dumps(payload))
-    try:
-        return json.loads(result)
-    except ValueError:
-        return {"error": {"message": result}}
-
-
-def build_kids_favourites():
-    lines = ["<favourites>"]
-    for addon_id, _label, favourite_name in KIDS_ADDONS:
-        escaped_name = xml.sax.saxutils.escape(favourite_name)
-        lines.append(
-            '    <favourite name="{0}">ActivateWindow(Videos,plugin://{1}/,return)</favourite>'.format(
-                escaped_name, addon_id
-            )
-        )
-    for addon_id, _label, favourite_name in SOLOKODI_ADDONS:
-        escaped_name = xml.sax.saxutils.escape(favourite_name)
-        lines.append(
-            '    <favourite name="{0}">ActivateWindow(Videos,plugin://{1}/,return)</favourite>'.format(
-                escaped_name, addon_id
-            )
-        )
-    lines.append('    <favourite name="SoLoKodi Kids Setup">RunAddon(plugin.program.solokodi.setup)</favourite>')
-    lines.append("</favourites>")
-    return "\n".join(lines) + "\n"
-
-
-def install_kids_addons():
-    installed = []
-    failed = []
-    for addon_id, label, _favourite_name in KIDS_ADDONS + SOLOKODI_ADDONS:
-        if not xbmc.getCondVisibility("System.HasAddon({0})".format(addon_id)):
-            xbmc.executebuiltin("InstallAddon({0})".format(addon_id), True)
-        response = json_rpc("Addons.SetAddonEnabled", {"addonid": addon_id, "enabled": True})
-        if "error" in response or not xbmc.getCondVisibility("System.HasAddon({0})".format(addon_id)):
-            failed.append(label)
-        else:
-            installed.append(label)
-    return installed, failed
-
-
-def apply_kids_theme():
-    for setting, value in KIDS_THEME_COLORS:
-        json_rpc("Settings.SetSettingValue", {"setting": setting, "value": value})
-
-    if not xbmc.getCondVisibility("System.HasAddon({0})".format(KIDS_SKIN)):
-        xbmc.executebuiltin("InstallAddon({0})".format(KIDS_SKIN), True)
-
-    if xbmc.getCondVisibility("System.HasAddon({0})".format(KIDS_SKIN)):
-        json_rpc("Addons.SetAddonEnabled", {"addonid": KIDS_SKIN, "enabled": True})
-        json_rpc("Settings.SetSettingValue", {"setting": "lookandfeel.skin", "value": KIDS_SKIN})
-        xbmc.executebuiltin("ReloadSkin()")
-        return True
-    return False
-
-
-def write_kids_favourites():
-    profile_dir = xbmcvfs.translatePath("special://profile/")
-    target = profile_dir.rstrip("/\\") + "/favourites.xml"
-    with xbmcvfs.File(target, "w") as handle:
-        handle.write(build_kids_favourites())
-    return target
-
-
 def run_kids_setup():
-    ok = xbmcgui.Dialog().yesno(
-        "SoLoKodi Kids Build",
-        "Welcome! This installs every official kids source we could find, "
-        "creates fun shortcuts on your home screen, and applies a colorful theme. Ready?",
-    )
-    if not ok:
-        return
-
-    installed, failed = install_kids_addons()
-    write_kids_favourites()
-    themed = apply_kids_theme()
-    ADDON.setSetting("setup_complete", "true")
-    ADDON.setSetting("build_profile", BUILD_PROFILE)
-
-    lines = ["Kids build setup complete!"]
-    if installed:
-        lines.append("Enabled: " + ", ".join(installed))
-    if failed:
-        lines.append("Install manually: " + ", ".join(failed))
-    lines.append("Connect Real-Debrid in this menu, add your TMDb key in Kids Real-Debrid settings, then explore Kids Real-Debrid.")
-    if themed:
-        lines.append("Applied the Bello kids-friendly skin and bright colors.")
-    else:
-        lines.append("Bright accent colors applied. Install skin.bello.10 from the official repo for the full look.")
-    lines.append("Restart Kodi to see all shortcuts and the new theme.")
-    xbmcgui.Dialog().ok("SoLoKodi Kids Build", "\n".join(lines))
+    wizard.run_setup_wizard()
 
 
 def run_family_setup():
@@ -166,9 +50,9 @@ def show_parent_tips():
                 "Optional ideas if you share this device with adults:",
                 "1. Create a separate Kids profile in Kodi.",
                 "2. Use Master Lock if you want to hide settings from little hands.",
-                "3. Real-Debrid (optional) stays in this menu for parent-managed media.",
+                "3. Real-Debrid (optional) powers Kids Real-Debrid streaming.",
                 "",
-                "That's it. Let the kids explore PBS, TVO, NASA, CBeebies, and more!",
+                "Use Setup Wizard anytime to repair shortcuts or finish optional steps.",
             ]
         ),
     )

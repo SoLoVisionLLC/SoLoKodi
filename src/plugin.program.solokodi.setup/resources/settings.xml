@@ -5,6 +5,8 @@
       <group id="1">
         <setting id="setup_complete" type="boolean" label="Kids build setup complete" default="false" enable="false"/>
         <setting id="build_profile" type="string" label="Active build profile" default="kids" enable="false"/>
+        <setting id="build_version_installed" type="string" label="Installed build version" default="" enable="false"/>
+        <setting id="last_update_check" type="string" label="Last update check (unix time)" default="" enable="false"/>
       </group>
     </category>
   </section>

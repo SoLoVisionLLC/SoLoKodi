@@ -1,0 +1,40 @@
+{
+  "id": "kids",
+  "name": "SoLoKodi Kids",
+  "version": "1.1.0",
+  "description": "Every official kids source, fun theme, Real-Debrid kids streaming, and one-tap shortcuts.",
+  "website": "https://solokodi.sololink.cloud",
+  "manifest_url": "https://solokodi.sololink.cloud/builds/kids/manifest.json",
+  "repo_url": "https://solokodi.sololink.cloud/repo/addons.xml",
+  "repository_id": "repository.solokodi",
+  "skin": {
+    "id": "skin.bello.10",
+    "colors": [
+      ["lookandfeel.skincolor", "FF42A5F5"],
+      ["lookandfeel.skincolors", "FFFF7043"]
+    ]
+  },
+  "content_addons": [
+    {"id": "plugin.video.pbskids", "label": "PBS Kids", "favourite": "PBS Kids"},
+    {"id": "plugin.video.tvokids", "label": "TV Ontario Kids", "favourite": "TVO Kids"},
+    {"id": "plugin.video.youtube", "label": "YouTube", "favourite": "YouTube"},
+    {"id": "plugin.video.plutotv", "label": "Pluto TV", "favourite": "Pluto TV"},
+    {"id": "plugin.video.nasa", "label": "NASA", "favourite": "NASA Space"},
+    {"id": "plugin.video.esa", "label": "ESA", "favourite": "ESA Space"},
+    {"id": "plugin.video.iplayerwww", "label": "BBC iPlayer", "favourite": "CBeebies and CBBC"},
+    {"id": "plugin.video.wdrmaus", "label": "WDR Maus", "favourite": "Die Maus"},
+    {"id": "plugin.video.zdftivi", "label": "ZDF Tivi", "favourite": "ZDF Tivi"}
+  ],
+  "solokodi_addons": [
+    {"id": "plugin.video.solokodi.kidsrd", "label": "SoLoKodi Kids Real-Debrid", "favourite": "Kids Real-Debrid"}
+  ],
+  "setup_favourite": "SoLoKodi Kids Setup",
+  "wizard_steps": [
+    {"id": "content_addons", "label": "Install kids sources", "required": true},
+    {"id": "solokodi_addons", "label": "Install SoLoKodi add-ons", "required": true},
+    {"id": "theme", "label": "Apply fun theme", "required": true},
+    {"id": "favourites", "label": "Create home shortcuts", "required": true},
+    {"id": "realdebrid", "label": "Connect Real-Debrid", "required": false},
+    {"id": "tmdb", "label": "Add TMDb API key", "required": false}
+  ]
+}

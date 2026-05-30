@@ -34,6 +34,17 @@ python3 scripts/build_repo.py
 python3 scripts/verify_repo.py
 ```
 
+The build script also generates `public/builds/kids/manifest.json` for remote
+update checks. See [docs/wizard-and-updates.md](docs/wizard-and-updates.md).
+
+## Setup Wizard
+
+Open **SoLoKodi Kids Setup** in Kodi:
+
+1. **Run Setup Wizard** — guided install (sources, theme, shortcuts, RD, TMDb)
+2. **Check for Updates** / **Update Build Now** — stay on the latest release
+3. **Repair Build** — refresh add-ons and shortcuts without losing settings
+
 ## Local Preview
 
 ```bash
