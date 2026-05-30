@@ -22,6 +22,7 @@ update manifest.
 - [x] Kodi 21 settings format (control tags) for setup and kidsrd add-ons
 - [x] Build script MD5 checksum matches on-disk `addons.xml` (CRLF-safe)
 - [x] Repo verification ensures embedded `kids.json` is packaged in setup ZIP
+- [x] Skin activation confirms Kodi dialog and verifies active skin (Bello)
 
 ### SoLoKodi Kids Real-Debrid (v0.1.1)
 

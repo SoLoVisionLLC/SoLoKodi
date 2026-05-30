@@ -121,7 +121,7 @@ def run_setup_wizard():
             results.append((step["label"], not failed, failed))
         elif step_id == "theme":
             themed = run_theme_step(manifest, progress, index, total)
-            results.append((step["label"], themed, []))
+            results.append((step["label"], themed, [] if themed else ["skin not activated"]))
         elif step_id == "favourites":
             run_favourites_step(manifest, progress, index, total)
             results.append((step["label"], True, []))
@@ -154,7 +154,7 @@ def run_setup_wizard():
         if detail:
             lines.append("  - " + ", ".join(detail))
     lines.append("")
-    lines.append("Restart Kodi to see shortcuts and the new theme.")
+    lines.append("Restart Kodi if the new skin is not visible yet.")
     xbmcgui.Dialog().ok("SoLoKodi Setup Wizard", "\n".join(lines))
 
 

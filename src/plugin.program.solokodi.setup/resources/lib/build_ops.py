@@ -1,4 +1,5 @@
 import json
+import re
 import xml.sax.saxutils
 
 import xbmc
@@ -17,8 +18,34 @@ def json_rpc(method, params=None):
         return {"error": {"message": result}}
 
 
+def json_rpc_ok(response):
+    if response.get("error"):
+        return False
+    result = response.get("result")
+    return result is True or result == "true"
+
+
+def active_skin():
+    response = json_rpc("Settings.GetSettingValue", {"setting": "lookandfeel.skin"})
+    result = response.get("result") or {}
+    value = result.get("value")
+    if isinstance(value, dict):
+        return value.get("value") or value.get("string") or ""
+    return str(value or "")
+
+
 def addon_installed(addon_id):
     return xbmc.getCondVisibility("System.HasAddon({0})".format(addon_id))
+
+
+def wait_for_addon(addon_id, timeout_ms=60000, interval_ms=500):
+    elapsed = 0
+    while elapsed < timeout_ms:
+        if addon_installed(addon_id):
+            return True
+        xbmc.sleep(interval_ms)
+        elapsed += interval_ms
+    return addon_installed(addon_id)
 
 
 def installed_version(addon_id):
@@ -66,21 +93,74 @@ def apply_theme(manifest=None):
     manifest = manifest or build_config.load_embedded_manifest()
     skin = build_config.skin_config(manifest)
     skin_id = skin.get("id")
-    themed = False
+    if not skin_id:
+        return False
 
     for setting, value in skin.get("colors") or []:
         json_rpc("Settings.SetSettingValue", {"setting": setting, "value": value})
 
-    if skin_id:
-        if not addon_installed(skin_id):
-            xbmc.executebuiltin("InstallAddon({0})".format(skin_id), True)
+    if not addon_installed(skin_id):
+        xbmc.executebuiltin("InstallAddon({0})".format(skin_id), True)
+        if not wait_for_addon(skin_id):
+            xbmc.log("SoLoKodi: timed out waiting for skin {0}".format(skin_id), xbmc.LOGWARNING)
+            return False
+
+    json_rpc("Addons.SetAddonEnabled", {"addonid": skin_id, "enabled": True})
+
+    response = json_rpc(
+        "Settings.SetSettingValue",
+        {"setting": "lookandfeel.skin", "value": skin_id},
+    )
+    if not json_rpc_ok(response):
+        xbmc.log("SoLoKodi: skin SetSettingValue failed: {0}".format(response), xbmc.LOGWARNING)
+
+    xbmc.sleep(1000)
+    xbmc.executebuiltin("SendClick(11)", True)
+    xbmc.sleep(500)
+
+    if active_skin() == skin_id:
+        return True
+
+    if _persist_skin_in_guisettings(skin_id):
+        response = json_rpc(
+            "Settings.SetSettingValue",
+            {"setting": "lookandfeel.skin", "value": skin_id},
+        )
+        if json_rpc_ok(response):
+            xbmc.sleep(1000)
+            xbmc.executebuiltin("SendClick(11)", True)
             xbmc.sleep(500)
-        if addon_installed(skin_id):
-            json_rpc("Addons.SetAddonEnabled", {"addonid": skin_id, "enabled": True})
-            json_rpc("Settings.SetSettingValue", {"setting": "lookandfeel.skin", "value": skin_id})
-            xbmc.executebuiltin("ReloadSkin()")
-            themed = True
-    return themed
+
+    return active_skin() == skin_id
+
+
+def _persist_skin_in_guisettings(skin_id):
+    path = xbmcvfs.translatePath("special://profile/guisettings.xml")
+    if not xbmcvfs.exists(path):
+        return False
+
+    with xbmcvfs.File(path) as handle:
+        content = handle.read()
+
+    pattern = r'(<setting id="lookandfeel\.skin"[^>]*>)([^<]*)(</setting>)'
+    updated, count = re.subn(pattern, r"\g<1>{0}\g<3>".format(skin_id), content, count=1)
+    if count == 0:
+        return False
+
+    updated = updated.replace(
+        '<setting id="lookandfeel.skin" default="true">',
+        '<setting id="lookandfeel.skin">',
+    )
+
+    with xbmcvfs.File(path, "w") as handle:
+        handle.write(updated)
+    return True
+
+
+def theme_is_active(manifest=None):
+    manifest = manifest or build_config.load_embedded_manifest()
+    skin_id = (build_config.skin_config(manifest) or {}).get("id")
+    return bool(skin_id and active_skin() == skin_id)
 
 
 def build_favourites_xml(manifest=None):

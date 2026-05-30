@@ -34,8 +34,16 @@ def step_solokodi_addons():
 def step_theme():
     manifest = build_config.load_embedded_manifest()
     skin_id = (build_config.skin_config(manifest) or {}).get("id")
-    complete = bool(skin_id and build_ops.addon_installed(skin_id))
-    return {"complete": complete, "missing": [] if complete else [skin_id or "theme"], "label": "Fun theme"}
+    if not skin_id:
+        return {"complete": False, "missing": ["theme"], "label": "Fun theme"}
+    if not build_ops.addon_installed(skin_id):
+        return {"complete": False, "missing": [skin_id], "label": "Fun theme"}
+    active = build_ops.theme_is_active(manifest)
+    return {
+        "complete": active,
+        "missing": [] if active else ["activate {0}".format(skin_id)],
+        "label": "Fun theme",
+    }
 
 
 def step_favourites():

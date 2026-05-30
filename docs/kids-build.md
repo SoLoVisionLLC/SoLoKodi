@@ -31,7 +31,7 @@ Restart Kodi after setup to see the full theme.
 
 ## Setup Flow
 
-1. Install `repository.solokodi` from the hosted ZIP (`repository.solokodi-0.4.1.zip`).
+1. Install `repository.solokodi` from the hosted ZIP (`repository.solokodi-0.4.2.zip`).
 2. Install `plugin.program.solokodi.setup` from the SoLoKodi repo.
 3. Open **SoLoKodi Kids Setup** and run **Setup Wizard**.
 4. Restart Kodi.
