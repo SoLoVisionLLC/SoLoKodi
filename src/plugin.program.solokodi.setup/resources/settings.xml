@@ -31,6 +31,17 @@
             <heading>Installed build version</heading>
           </control>
         </setting>
+        <setting id="preferred_skin" type="string" label="Preferred kids skin" help="">
+          <level>0</level>
+          <default>skin.bello.10</default>
+          <constraints>
+            <allowempty>false</allowempty>
+          </constraints>
+          <enable>false</enable>
+          <control type="edit" format="string">
+            <heading>Preferred kids skin</heading>
+          </control>
+        </setting>
         <setting id="last_update_check" type="string" label="Last update check (unix time)" help="">
           <level>4</level>
           <default/>

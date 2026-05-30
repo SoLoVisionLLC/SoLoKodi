@@ -1,16 +1,34 @@
 {
   "id": "kids",
   "name": "SoLoKodi Kids",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Every official kids source pre-loaded in the home menu, fun theme, Real-Debrid kids streaming, and one-tap shortcuts.",
   "website": "https://solokodi.sololink.cloud",
   "manifest_url": "https://solokodi.sololink.cloud/builds/kids/manifest.json",
   "repo_url": "https://solokodi.sololink.cloud/repo/addons.xml",
   "repository_id": "repository.solokodi",
   "skin": {
+    "default_id": "skin.bello.10",
     "id": "skin.bello.10",
     "colors": [
       ["lookandfeel.skincolors", "FFFF7043"]
+    ],
+    "options": [
+      {
+        "id": "skin.bello.10",
+        "label": "Bello",
+        "official": true,
+        "dependencies": ["script.skinshortcuts"]
+      },
+      {
+        "id": "skin.nimbus",
+        "label": "Nimbus",
+        "official": false,
+        "repository_id": "repository.ivarbrandt",
+        "repository_name": "ivarbrandt",
+        "repository_url": "https://ivarbrandt.github.io/",
+        "dependencies": ["script.nimbus.helper"]
+      }
     ]
   },
   "content_addons": [
@@ -31,7 +49,7 @@
   "wizard_steps": [
     {"id": "content_addons", "label": "Install kids sources", "required": true},
     {"id": "solokodi_addons", "label": "Install SoLoKodi add-ons", "required": true},
-    {"id": "theme", "label": "Apply fun theme", "required": true},
+    {"id": "theme", "label": "Choose kids theme", "required": true},
     {"id": "favourites", "label": "Create shortcuts and home menu", "required": true},
     {"id": "realdebrid", "label": "Connect Real-Debrid", "required": false},
     {"id": "tmdb", "label": "Add TMDb API key", "required": false}

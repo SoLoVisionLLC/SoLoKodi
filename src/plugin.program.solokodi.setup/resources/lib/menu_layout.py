@@ -4,7 +4,7 @@ import xml.sax.saxutils
 import xbmc
 import xbmcvfs
 
-from . import build_config, build_ops
+from . import build_config, build_ops, nimbus_layout
 
 BELLO_SKIN_ID = "skin.bello.10"
 SHORTCUTS_ADDON = "script.skinshortcuts"
@@ -77,8 +77,7 @@ def _build_group_xml(entries, fallback_label, fallback_icon):
     return "\n".join(lines) + "\n"
 
 
-def _build_mainmenu_xml(manifest):
-    skin_id = (build_config.skin_config(manifest) or {}).get("id", BELLO_SKIN_ID)
+def _build_bello_mainmenu_xml(manifest):
     setup_id = "plugin.program.solokodi.setup"
     lines = ['<?xml version=\'1.0\' encoding=\'UTF-8\'?>', "<shortcuts>"]
     lines.append(
@@ -146,7 +145,7 @@ def _build_mainmenu_xml(manifest):
         )
     )
     lines.append("</shortcuts>")
-    return "\n".join(lines) + "\n", skin_id
+    return "\n".join(lines) + "\n"
 
 
 def _shortcuts_data_dir():
@@ -177,34 +176,30 @@ def _rebuild_bello_menu():
         ),
         True,
     )
-    xbmc.executebuiltin("ReloadSkin()")
+    if build_ops.active_skin() == BELLO_SKIN_ID:
+        xbmc.executebuiltin("ReloadSkin()")
     return True
 
 
-def menu_files_present(manifest=None):
-    manifest = manifest or build_config.load_embedded_manifest()
-    skin_id = (build_config.skin_config(manifest) or {}).get("id", BELLO_SKIN_ID)
+def bello_menu_present():
     for group in ("mainmenu", "tvshows", "livetv", "movies", "videos"):
-        if not xbmcvfs.exists(_shortcuts_data_path(skin_id, group)):
+        if not xbmcvfs.exists(_shortcuts_data_path(BELLO_SKIN_ID, group)):
             return False
     return True
 
 
-def apply_kids_home_menu(manifest=None):
+def apply_bello_menu(manifest=None):
     manifest = manifest or build_config.load_embedded_manifest()
-    skin_id = (build_config.skin_config(manifest) or {}).get("id", BELLO_SKIN_ID)
-
-    if skin_id != BELLO_SKIN_ID:
-        xbmc.log("SoLoKodi: home menu layout only supports {0} for now".format(BELLO_SKIN_ID), xbmc.LOGINFO)
-        return False
 
     if not build_ops.addon_installed(SHORTCUTS_ADDON):
-        xbmc.log("SoLoKodi: {0} is required for the kids home menu".format(SHORTCUTS_ADDON), xbmc.LOGWARNING)
+        xbmc.log(
+            "SoLoKodi: {0} is required for the Bello kids home menu".format(SHORTCUTS_ADDON),
+            xbmc.LOGWARNING,
+        )
         return False
 
-    mainmenu_xml, _skin = _build_mainmenu_xml(manifest)
     groups = {
-        "mainmenu": mainmenu_xml,
+        "mainmenu": _build_bello_mainmenu_xml(manifest),
         "tvshows": _build_group_xml(_entries_for_group(manifest, "tvshows"), "Kids TV Shows", "DefaultTVShows.png"),
         "livetv": _build_group_xml(_entries_for_group(manifest, "livetv"), "Live Kids TV", "DefaultLiveTV.png"),
         "movies": _build_group_xml(_entries_for_group(manifest, "movies"), "Kids Movies", "DefaultMovies.png"),
@@ -212,6 +207,21 @@ def apply_kids_home_menu(manifest=None):
     }
 
     for group, payload in groups.items():
-        _write_shortcuts_file(skin_id, group, payload)
+        _write_shortcuts_file(BELLO_SKIN_ID, group, payload)
 
     return _rebuild_bello_menu()
+
+
+def menu_files_present(manifest=None):
+    manifest = manifest or build_config.load_embedded_manifest()
+    skin_id = build_config.selected_skin_id(manifest)
+    if skin_id == nimbus_layout.NIMBUS_SKIN_ID:
+        return nimbus_layout.menu_configured(manifest)
+    return bello_menu_present()
+
+
+def apply_kids_home_menu(manifest=None):
+    manifest = manifest or build_config.load_embedded_manifest()
+    bello_ok = apply_bello_menu(manifest)
+    nimbus_ok = nimbus_layout.apply_nimbus_menu(manifest)
+    return bello_ok or nimbus_ok

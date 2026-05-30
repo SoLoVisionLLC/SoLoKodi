@@ -8,12 +8,14 @@ update manifest.
 
 ## Completed
 
-### SoLoKodi Kids Build (v1.2.0)
+### SoLoKodi Kids Build (v1.3.0)
 
 - [x] Install all official kids sources from the Kodi repository (9 add-ons)
 - [x] Generate favourites shortcuts for every kids source
 - [x] Pre-configure Bello home menu and TV/Movies submenus with kids add-ons
-- [x] Apply colorful Bello skin and bright accent colors
+- [x] Pre-configure Nimbus home menu widgets via `script.nimbus.helper`
+- [x] Choose Bello or Nimbus skin during setup; switch later from setup menu
+- [x] Apply colorful theme and bright accent colors
 - [x] Kid-themed landing page with playful design
 - [x] Guided setup wizard with progress and optional steps
 - [x] Build status dashboard and repair flow
@@ -45,6 +47,6 @@ update manifest.
 
 | Profile | Status | Manifest |
 |---------|--------|----------|
-| **Kids** | v1.1.0 | `/builds/kids/manifest.json` |
+| **Kids** | v1.3.0 | `/builds/kids/manifest.json` |
 | Sports | Planned | `/builds/sports/manifest.json` |
 | Movies | Planned | `/builds/movies/manifest.json` |

@@ -51,9 +51,37 @@ def run_solokodi_addons_step(manifest, progress, index, total):
     return build_ops.install_addons(build_config.solokodi_addons(manifest))
 
 
+def choose_skin(manifest):
+    options = build_config.skin_options(manifest)
+    if len(options) <= 1:
+        return options[0]["id"] if options else build_config.default_skin_id(manifest)
+
+    labels = [option.get("label") or option.get("id") for option in options]
+    preferred = xbmcaddon.Addon().getSetting("preferred_skin")
+    preselect = 0
+    for index, option in enumerate(options):
+        if option.get("id") == preferred:
+            preselect = index
+            break
+
+    choice = xbmcgui.Dialog().select(
+        "Choose your kids home look",
+        labels,
+        preselect=preselect,
+    )
+    if choice < 0:
+        return None
+    return options[choice]["id"]
+
+
 def run_theme_step(manifest, progress, index, total):
-    progress.update(int((index / total) * 100), "Applying colorful theme...")
-    return build_ops.apply_theme(manifest)
+    progress.update(int((index / total) * 100), "Applying kids theme...")
+    skin_id = choose_skin(manifest)
+    if not skin_id:
+        return False
+    setup = xbmcaddon.Addon()
+    setup.setSetting("preferred_skin", skin_id)
+    return build_ops.apply_theme(manifest, skin_id=skin_id)
 
 
 def run_favourites_step(manifest, progress, index, total):
@@ -157,6 +185,34 @@ def run_setup_wizard():
     lines.append("")
     lines.append("Restart Kodi if the new skin is not visible yet.")
     xbmcgui.Dialog().ok("SoLoKodi Setup Wizard", "\n".join(lines))
+
+
+def run_change_skin():
+    manifest = build_config.load_embedded_manifest()
+    skin_id = choose_skin(manifest)
+    if not skin_id:
+        return
+    setup = xbmcaddon.Addon()
+    setup.setSetting("preferred_skin", skin_id)
+    progress = _progress("Change Kids Skin", "Installing and applying skin...")
+    progress.update(40, "Applying skin...")
+    themed = build_ops.apply_theme(manifest, skin_id=skin_id)
+    progress.update(80, "Refreshing home menu...")
+    menu_layout.apply_kids_home_menu(manifest)
+    progress.update(100, "Done")
+    time.sleep(0.3)
+    progress.close()
+    if themed:
+        notify("Skin changed — restart Kodi if the home screen looks wrong")
+        xbmcgui.Dialog().ok(
+            "Change Kids Skin",
+            "Your preferred skin was saved.\n\nRestart Kodi if the new look is not visible yet.",
+        )
+    else:
+        xbmcgui.Dialog().ok(
+            "Change Kids Skin",
+            "The skin could not be activated automatically.\n\nTry Repair Build or restart Kodi.",
+        )
 
 
 def run_quick_repair():

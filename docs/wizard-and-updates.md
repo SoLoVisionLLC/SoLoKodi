@@ -14,14 +14,15 @@ offers these actions:
 | **Build Status** | Checklist of required and optional steps |
 | **Check for Updates** | Compare local install vs hosted manifest |
 | **Update Build Now** | Install latest repo, add-ons, theme, shortcuts |
+| **Change Kids Skin** | Switch between Bello and Nimbus |
 | **Repair Build** | Re-sync add-ons, theme, and favourites without changing RD/TMDb |
 
-### Wizard steps (Kids build v1.1.0)
+### Wizard steps (Kids build v1.3.0)
 
 1. **Install kids sources** — official Kodi add-ons (PBS, TVO, YouTube, etc.)
 2. **Install SoLoKodi add-ons** — Kids Real-Debrid from the SoLoKodi repo
-3. **Apply fun theme** — Bello skin + bright accent colors
-4. **Create shortcuts and home menu** — favourites plus Bello menu items for every kids source
+3. **Choose kids theme** — Bello or Nimbus skin + bright accent colors
+4. **Create shortcuts and home menu** — favourites plus Bello or Nimbus menu items for every kids source
 5. **Connect Real-Debrid** *(optional)* — device authorization flow
 6. **Add TMDb API key** *(optional)* — for Kids Real-Debrid discovery
 

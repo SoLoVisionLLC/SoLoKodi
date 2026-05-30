@@ -55,6 +55,38 @@ def skin_config(manifest=None):
     return manifest.get("skin") or {}
 
 
+def skin_options(manifest=None):
+    manifest = manifest or load_embedded_manifest()
+    skin = skin_config(manifest)
+    options = skin.get("options") or []
+    if options:
+        return options
+    skin_id = skin.get("id")
+    if skin_id:
+        return [{"id": skin_id, "label": skin.get("name") or skin_id, "official": True}]
+    return []
+
+
+def default_skin_id(manifest=None):
+    skin = skin_config(manifest)
+    return skin.get("default_id") or skin.get("id") or "skin.bello.10"
+
+
+def selected_skin_id(manifest=None):
+    manifest = manifest or load_embedded_manifest()
+    preferred = addon().getSetting("preferred_skin")
+    if preferred:
+        return preferred
+    return default_skin_id(manifest)
+
+
+def skin_option(skin_id, manifest=None):
+    for option in skin_options(manifest):
+        if option.get("id") == skin_id:
+            return option
+    return None
+
+
 def build_info(manifest=None):
     manifest = manifest or load_embedded_manifest()
     return manifest.get("build") or {}

@@ -56,6 +56,11 @@ def show_menu():
         "Install the latest SoLoKodi repository, add-ons, home menu, shortcuts, and theme.",
     )
     add_item(
+        "Change Kids Skin",
+        "change_skin",
+        "Switch between Bello and Nimbus with the same kids home menu shortcuts.",
+    )
+    add_item(
         "Repair Build",
         "repair",
         "Re-install missing add-ons and refresh the kids home menu, shortcuts, and theme without changing settings.",
@@ -104,6 +109,8 @@ def run():
         updater.apply_updates()
     elif action == "repair":
         wizard.run_quick_repair()
+    elif action == "change_skin":
+        wizard.run_change_skin()
     elif action == "connect_rd":
         setup.connect_real_debrid()
     elif action == "open_kidsrd":

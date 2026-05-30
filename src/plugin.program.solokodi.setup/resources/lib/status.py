@@ -33,16 +33,18 @@ def step_solokodi_addons():
 
 def step_theme():
     manifest = build_config.load_embedded_manifest()
-    skin_id = (build_config.skin_config(manifest) or {}).get("id")
+    skin_id = build_config.selected_skin_id(manifest)
+    option = build_config.skin_option(skin_id, manifest) or {}
+    label = option.get("label") or skin_id or "Kids theme"
     if not skin_id:
-        return {"complete": False, "missing": ["theme"], "label": "Fun theme"}
+        return {"complete": False, "missing": ["theme"], "label": "Kids theme"}
     if not build_ops.addon_installed(skin_id):
-        return {"complete": False, "missing": [skin_id], "label": "Fun theme"}
+        return {"complete": False, "missing": [label], "label": "Kids theme"}
     active = build_ops.theme_is_active(manifest)
     return {
         "complete": active,
-        "missing": [] if active else ["activate {0}".format(skin_id)],
-        "label": "Fun theme",
+        "missing": [] if active else ["activate {0}".format(label)],
+        "label": "Kids theme",
     }
 
 

@@ -89,21 +89,88 @@ def install_addons(entries):
     return installed, failed
 
 
-def apply_theme(manifest=None):
-    manifest = manifest or build_config.load_embedded_manifest()
-    skin = build_config.skin_config(manifest)
-    skin_id = skin.get("id")
+def ensure_file_source(name, url):
+    path = xbmcvfs.translatePath("special://profile/sources.xml")
+    if not xbmcvfs.exists(path):
+        return False
+
+    with xbmcvfs.File(path) as handle:
+        content = handle.read()
+
+    if url in content:
+        return True
+
+    marker = "<files>"
+    insert = (
+        '        <source>\n'
+        '            <name>{0}</name>\n'
+        '            <path pathversion="1">{1}</path>\n'
+        '            <allowsharing>true</allowsharing>\n'
+        '        </source>\n'
+    ).format(name, url)
+
+    if marker not in content:
+        return False
+
+    updated = content.replace(marker, marker + "\n" + insert, 1)
+    with xbmcvfs.File(path, "w") as handle:
+        handle.write(updated)
+    return True
+
+
+def install_skin_option(option, manifest=None):
+    skin_id = option.get("id")
     if not skin_id:
         return False
 
-    for setting, value in skin.get("colors") or []:
-        json_rpc("Settings.SetSettingValue", {"setting": setting, "value": value})
+    for dependency in option.get("dependencies") or []:
+        if not install_addon(dependency):
+            if not wait_for_addon(dependency, timeout_ms=120000):
+                xbmc.log(
+                    "SoLoKodi: failed to install dependency {0}".format(dependency),
+                    xbmc.LOGWARNING,
+                )
 
-    if not addon_installed(skin_id):
-        xbmc.executebuiltin("InstallAddon({0})".format(skin_id), True)
-        if not wait_for_addon(skin_id):
-            xbmc.log("SoLoKodi: timed out waiting for skin {0}".format(skin_id), xbmc.LOGWARNING)
-            return False
+    if option.get("official", True):
+        if not install_addon(skin_id):
+            if not wait_for_addon(skin_id, timeout_ms=120000):
+                return False
+    else:
+        repo_id = option.get("repository_id")
+        repo_url = option.get("repository_url")
+        if repo_id and repo_url:
+            ensure_file_source(option.get("repository_name") or repo_id, repo_url)
+            xbmc.executebuiltin("UpdateAddonRepos", True)
+            xbmc.sleep(2000)
+            if not addon_installed(repo_id):
+                xbmc.executebuiltin("InstallAddon({0})".format(repo_id), True)
+                if not wait_for_addon(repo_id, timeout_ms=120000):
+                    xbmc.log("SoLoKodi: failed to install repo {0}".format(repo_id), xbmc.LOGWARNING)
+                    return False
+        if not install_addon(skin_id):
+            if not wait_for_addon(skin_id, timeout_ms=120000):
+                return False
+
+    json_rpc("Addons.SetAddonEnabled", {"addonid": skin_id, "enabled": True})
+    return addon_installed(skin_id)
+
+
+def install_skin_options(manifest=None):
+    manifest = manifest or build_config.load_embedded_manifest()
+    installed = []
+    failed = []
+    for option in build_config.skin_options(manifest):
+        label = option.get("label") or option.get("id")
+        if install_skin_option(option, manifest):
+            installed.append(label)
+        else:
+            failed.append(label)
+    return installed, failed
+
+
+def activate_skin(skin_id):
+    if not skin_id:
+        return False
 
     json_rpc("Addons.SetAddonEnabled", {"addonid": skin_id, "enabled": True})
 
@@ -134,6 +201,18 @@ def apply_theme(manifest=None):
     return active_skin() == skin_id
 
 
+def apply_theme(manifest=None, skin_id=None):
+    manifest = manifest or build_config.load_embedded_manifest()
+    skin_id = skin_id or build_config.selected_skin_id(manifest)
+    skin = build_config.skin_config(manifest)
+
+    for setting, value in skin.get("colors") or []:
+        json_rpc("Settings.SetSettingValue", {"setting": setting, "value": value})
+
+    install_skin_options(manifest)
+    return activate_skin(skin_id)
+
+
 def _persist_skin_in_guisettings(skin_id):
     path = xbmcvfs.translatePath("special://profile/guisettings.xml")
     if not xbmcvfs.exists(path):
@@ -159,7 +238,7 @@ def _persist_skin_in_guisettings(skin_id):
 
 def theme_is_active(manifest=None):
     manifest = manifest or build_config.load_embedded_manifest()
-    skin_id = (build_config.skin_config(manifest) or {}).get("id")
+    skin_id = build_config.selected_skin_id(manifest)
     return bool(skin_id and active_skin() == skin_id)
 
 

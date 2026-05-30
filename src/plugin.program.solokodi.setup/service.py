@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
         try:
             manifest = build_config.load_embedded_manifest()
-            skin_id = (build_config.skin_config(manifest) or {}).get("id")
+            skin_id = build_config.selected_skin_id(manifest)
             if skin_id and build_ops.addon_installed(skin_id) and not build_ops.theme_is_active(manifest):
                 build_ops.apply_theme(manifest)
             if not menu_layout.menu_files_present(manifest):

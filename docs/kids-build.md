@@ -22,17 +22,27 @@ repos required.
 
 ## Theme
 
-Setup applies:
+Setup lets you choose between two kids home looks (both get the same shortcuts and menu groups):
 
-- **Skin:** `skin.bello.10` (colorful tile-based UI from official repo)
+| Skin | Source | Home menu engine |
+|------|--------|------------------|
+| **Bello** (`skin.bello.10`) | Official Kodi repo | `script.skinshortcuts` |
+| **Nimbus** (`skin.nimbus`) | [ivarbrandt repo](https://ivarbrandt.github.io/) | `script.nimbus.helper` |
+
+Both skins receive:
+
 - **Accent colors:** bright orange (`FFFF7043`)
 - **Home menu:** Kids TV Shows, Live Kids TV, Kids Movies, Explore, Favourites — each opens ready-to-browse add-ons
 
+The wizard prompts you to pick Bello or Nimbus during **Choose kids theme**. You can switch later from **Change Kids Skin** in the setup add-on.
+
 Restart Kodi after setup to see the full theme.
+
+**Note:** Nimbus is not in the official Kodi repository. The setup wizard adds the ivarbrandt file source and installs `repository.ivarbrandt` automatically when you choose Nimbus.
 
 ## Setup Flow
 
-1. Install `repository.solokodi` from the hosted ZIP (`repository.solokodi-0.4.3.zip`).
+1. Install `repository.solokodi` from the hosted ZIP (`repository.solokodi-0.4.4.zip`).
 2. Install `plugin.program.solokodi.setup` from the SoLoKodi repo.
 3. Open **SoLoKodi Kids Setup** and run **Setup Wizard**.
 4. Restart Kodi.
