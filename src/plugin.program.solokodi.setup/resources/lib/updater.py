@@ -192,7 +192,7 @@ def apply_updates():
         progress.update(10 + int((index / max(len(addon_ids), 1)) * 50), "Updating {0}...".format(addon_id))
         build_ops.update_addon(addon_id)
 
-    progress.update(70, "Refreshing build files...")
+    progress.update(70, "Refreshing kids sources...")
     try:
         remote = fetch_remote_manifest()
     except (urllib.error.URLError, urllib.error.HTTPError, RuntimeError, ValueError):
@@ -200,8 +200,11 @@ def apply_updates():
 
     build_ops.install_addons(build_config.content_addons(remote))
     build_ops.install_addons(build_config.solokodi_addons(remote))
+    progress.update(78, "Applying theme...")
     build_ops.apply_theme(remote)
+    progress.update(86, "Updating shortcuts...")
     build_ops.write_favourites(remote)
+    progress.update(92, "Refreshing home menu...")
     menu_layout.apply_kids_home_menu(remote)
 
     build = remote.get("build") or build_config.build_info(remote)

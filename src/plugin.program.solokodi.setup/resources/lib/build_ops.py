@@ -123,9 +123,15 @@ def install_skin_option(option, manifest=None):
     if not skin_id:
         return False
 
+    if addon_installed(skin_id):
+        json_rpc("Addons.SetAddonEnabled", {"addonid": skin_id, "enabled": True})
+        return True
+
     for dependency in option.get("dependencies") or []:
+        if addon_installed(dependency):
+            continue
         if not install_addon(dependency):
-            if not wait_for_addon(dependency, timeout_ms=120000):
+            if not wait_for_addon(dependency, timeout_ms=45000):
                 xbmc.log(
                     "SoLoKodi: failed to install dependency {0}".format(dependency),
                     xbmc.LOGWARNING,
@@ -133,7 +139,7 @@ def install_skin_option(option, manifest=None):
 
     if option.get("official", True):
         if not install_addon(skin_id):
-            if not wait_for_addon(skin_id, timeout_ms=120000):
+            if not wait_for_addon(skin_id, timeout_ms=45000):
                 return False
     else:
         repo_id = option.get("repository_id")
@@ -144,15 +150,33 @@ def install_skin_option(option, manifest=None):
             xbmc.sleep(2000)
             if not addon_installed(repo_id):
                 xbmc.executebuiltin("InstallAddon({0})".format(repo_id), True)
-                if not wait_for_addon(repo_id, timeout_ms=120000):
+                if not wait_for_addon(repo_id, timeout_ms=45000):
                     xbmc.log("SoLoKodi: failed to install repo {0}".format(repo_id), xbmc.LOGWARNING)
                     return False
         if not install_addon(skin_id):
-            if not wait_for_addon(skin_id, timeout_ms=120000):
+            if not wait_for_addon(skin_id, timeout_ms=45000):
                 return False
 
     json_rpc("Addons.SetAddonEnabled", {"addonid": skin_id, "enabled": True})
     return addon_installed(skin_id)
+
+
+def install_selected_skin(skin_id, manifest=None):
+    manifest = manifest or build_config.load_embedded_manifest()
+    if not skin_id:
+        return False
+
+    if addon_installed(skin_id):
+        json_rpc("Addons.SetAddonEnabled", {"addonid": skin_id, "enabled": True})
+        return True
+
+    option = build_config.skin_option(skin_id, manifest)
+    if option:
+        return install_skin_option(option, manifest)
+
+    if install_addon(skin_id):
+        return True
+    return wait_for_addon(skin_id)
 
 
 def install_skin_options(manifest=None):
@@ -209,7 +233,10 @@ def apply_theme(manifest=None, skin_id=None):
     for setting, value in skin.get("colors") or []:
         json_rpc("Settings.SetSettingValue", {"setting": setting, "value": value})
 
-    install_skin_options(manifest)
+    install_selected_skin(skin_id, manifest)
+
+    if active_skin() == skin_id:
+        return True
     return activate_skin(skin_id)
 
 
