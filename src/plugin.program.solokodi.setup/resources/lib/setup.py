@@ -31,6 +31,10 @@ KIDS_ADDONS = [
     ("plugin.video.zdftivi", "ZDF Tivi", "ZDF Tivi"),
 ]
 
+SOLOKODI_ADDONS = [
+    ("plugin.video.solokodi.kidsrd", "SoLoKodi Kids Real-Debrid", "Kids Real-Debrid"),
+]
+
 KIDS_SKIN = "skin.bello.10"
 KIDS_THEME_COLORS = [
     ("lookandfeel.skincolor", "FF42A5F5"),
@@ -70,6 +74,13 @@ def build_kids_favourites():
                 escaped_name, addon_id
             )
         )
+    for addon_id, _label, favourite_name in SOLOKODI_ADDONS:
+        escaped_name = xml.sax.saxutils.escape(favourite_name)
+        lines.append(
+            '    <favourite name="{0}">ActivateWindow(Videos,plugin://{1}/,return)</favourite>'.format(
+                escaped_name, addon_id
+            )
+        )
     lines.append('    <favourite name="SoLoKodi Kids Setup">RunAddon(plugin.program.solokodi.setup)</favourite>')
     lines.append("</favourites>")
     return "\n".join(lines) + "\n"
@@ -78,7 +89,7 @@ def build_kids_favourites():
 def install_kids_addons():
     installed = []
     failed = []
-    for addon_id, label, _favourite_name in KIDS_ADDONS:
+    for addon_id, label, _favourite_name in KIDS_ADDONS + SOLOKODI_ADDONS:
         if not xbmc.getCondVisibility("System.HasAddon({0})".format(addon_id)):
             xbmc.executebuiltin("InstallAddon({0})".format(addon_id), True)
         response = json_rpc("Addons.SetAddonEnabled", {"addonid": addon_id, "enabled": True})
@@ -131,7 +142,8 @@ def run_kids_setup():
     if installed:
         lines.append("Enabled: " + ", ".join(installed))
     if failed:
-        lines.append("Install manually from the Kodi official repo: " + ", ".join(failed))
+        lines.append("Install manually: " + ", ".join(failed))
+    lines.append("Connect Real-Debrid in this menu, add your TMDb key in Kids Real-Debrid settings, then explore Kids Real-Debrid.")
     if themed:
         lines.append("Applied the Bello kids-friendly skin and bright colors.")
     else:

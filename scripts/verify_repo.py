@@ -26,7 +26,7 @@ def verify_xml() -> ET.Element:
     if root.tag != "addons":
         fail("repo/addons.xml root must be <addons>")
     addon_ids = [addon.attrib.get("id") for addon in root.findall("addon")]
-    for expected in ("repository.solokodi", "plugin.program.solokodi.setup"):
+    for expected in ("repository.solokodi", "plugin.program.solokodi.setup", "plugin.video.solokodi.kidsrd"):
         if expected not in addon_ids:
             fail(f"{expected} missing from addons.xml")
     expected_md5 = hashlib.md5(path.read_bytes()).hexdigest()

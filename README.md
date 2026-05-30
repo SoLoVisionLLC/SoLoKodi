@@ -46,8 +46,14 @@ Open `http://localhost:8080`.
 ## Optional Real-Debrid
 
 Parents can connect Real-Debrid via the device authorization flow. Tokens stay
-local in the Kodi profile. This is optional and not required for any kids
-source in the build.
+local in the Kodi profile. The **SoLoKodi Kids Real-Debrid** add-on
+(`plugin.video.solokodi.kidsrd`) uses those tokens to:
+
+- Browse and play kids-filtered content from your RD library
+- Discover G/PG kids movies and series via TMDb
+- Stream cached titles through Real-Debrid when available
+
+See [docs/kids-real-debrid.md](docs/kids-real-debrid.md) for setup details.
 
 ## More Builds
 

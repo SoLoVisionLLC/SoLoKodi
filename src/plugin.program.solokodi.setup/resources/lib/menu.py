@@ -24,6 +24,11 @@ def show_menu():
         "Install every official kids source, create shortcuts, and apply a fun colorful theme.",
     )
     add_item(
+        "Open Kids Real-Debrid",
+        "open_kidsrd",
+        "Browse and play kids movies and shows from your Real-Debrid library.",
+    )
+    add_item(
         "Connect Real-Debrid",
         "connect_rd",
         "Optional: authorize this Kodi profile with Real-Debrid using the device flow.",
@@ -54,6 +59,9 @@ def run():
         setup.run_kids_setup()
     elif action == "connect_rd":
         setup.connect_real_debrid()
+    elif action == "open_kidsrd":
+        import xbmc
+        xbmc.executebuiltin("ActivateWindow(Videos,plugin://plugin.video.solokodi.kidsrd/,return)")
     elif action == "check_rd":
         setup.check_real_debrid()
     elif action in ("parent_tips", "lock_checklist"):

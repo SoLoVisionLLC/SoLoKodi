@@ -16,12 +16,21 @@ SoLoKodi is a **family of Kodi builds** — each tuned for a different situation
 - [x] Kid-themed landing page with playful design
 - [x] Rename from "Family Build" to "Kids Build" across repo and add-on metadata
 
+### SoLoKodi Kids Real-Debrid (v0.1.0)
+
+- [x] Custom `plugin.video.solokodi.kidsrd` add-on
+- [x] Reads RD tokens from setup wizard (with token refresh)
+- [x] Kids-filtered RD library browser
+- [x] TMDb discover for G/PG movies and kids TV
+- [x] Movie playback via RD cache + magnet resolver
+- [x] Wired into kids setup, favourites, and repo v0.3.0
+
 ## Next Up
 
 - [ ] Add-on icons and fanart for SoLoKodi repo branding
 - [ ] Curated YouTube playlist deep-links (kids channels by ID)
+- [ ] TV show magnet resolver (currently library-match only)
 - [ ] Automate Kodi profile creation via JSON-RPC
-- [ ] Real-Debrid integration with lawful personal-media add-ons
 - [ ] Second build profile (e.g. sports or movies)
 - [ ] CI pipeline to build and deploy on push
 

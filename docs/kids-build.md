@@ -46,7 +46,8 @@ warnings that blocked the kids-first experience. v0.2.0 removes those:
 - Landing page focuses on what's included, not legal boundaries
 - No source filtering — all official kids add-ons are installed
 
-Optional Real-Debrid remains available for parents who want it.
+Optional Real-Debrid remains available via **Kids Real-Debrid**
+(`plugin.video.solokodi.kidsrd`). See [kids-real-debrid.md](kids-real-debrid.md).
 
 ## Adding More Sources
 
