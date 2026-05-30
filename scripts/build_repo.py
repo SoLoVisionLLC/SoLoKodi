@@ -28,6 +28,8 @@ def zip_addon(addon_dir: Path) -> Path:
         zip_path.unlink()
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(addon_dir.rglob("*")):
+            if "__pycache__" in path.parts or path.suffix == ".pyc":
+                continue
             if path.is_file():
                 archive.write(path, path.relative_to(addon_dir.parent))
     return zip_path
