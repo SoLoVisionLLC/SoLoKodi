@@ -47,6 +47,12 @@ def verify_zips(root: ET.Element) -> None:
             expected = f"{addon_id}/addon.xml"
             if expected not in archive.namelist():
                 fail(f"{zip_path} does not contain {expected}")
+    public_repo_zip = ROOT / "public" / "solokodi" / "repository.solokodi-0.1.0.zip"
+    if not public_repo_zip.exists():
+        fail("public SoLoKodi repository ZIP is missing from /solokodi")
+    legacy_root_zip = ROOT / "public" / "repository.solokodi-0.1.0.zip"
+    if legacy_root_zip.exists():
+        fail("legacy root-level repository ZIP should redirect, not exist as a file")
 
 
 def verify_no_embedded_secrets() -> None:

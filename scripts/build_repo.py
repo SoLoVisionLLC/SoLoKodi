@@ -64,7 +64,12 @@ def main() -> int:
     repo_dir = SRC / "repository.solokodi"
     repo_id, repo_version = addon_metadata(repo_dir)
     repo_zip = REPO / repo_id / f"{repo_id}-{repo_version}.zip"
-    shutil.copy2(repo_zip, PUBLIC / repo_zip.name)
+    public_repo_dir = PUBLIC / "solokodi"
+    public_repo_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(repo_zip, public_repo_dir / repo_zip.name)
+    legacy_root_zip = PUBLIC / repo_zip.name
+    if legacy_root_zip.exists():
+        legacy_root_zip.unlink()
     print(f"Built {len(addon_dirs)} add-ons into {REPO}")
     return 0
 
