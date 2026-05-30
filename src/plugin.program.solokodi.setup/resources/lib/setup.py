@@ -3,6 +3,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import xml.sax.saxutils
 
 import xbmc
 import xbmcaddon
@@ -10,26 +11,34 @@ import xbmcgui
 import xbmcvfs
 
 ADDON = xbmcaddon.Addon()
+BUILD_PROFILE = "kids"
 CLIENT_ID = "X245A4XAIBGVM"
 DEVICE_URL = "https://api.real-debrid.com/oauth/v2/device/code"
 CREDENTIALS_URL = "https://api.real-debrid.com/oauth/v2/device/credentials"
 TOKEN_URL = "https://api.real-debrid.com/oauth/v2/token"
 API_ROOT = "https://api.real-debrid.com/rest/1.0"
 
-OFFICIAL_ADDONS = [
-    ("plugin.video.pbskids", "PBS Kids"),
-    ("plugin.video.youtube", "YouTube"),
+# Official Kodi repo add-ons with kids, family, or educational content.
+KIDS_ADDONS = [
+    ("plugin.video.pbskids", "PBS Kids", "PBS Kids"),
+    ("plugin.video.tvokids", "TV Ontario Kids", "TVO Kids"),
+    ("plugin.video.youtube", "YouTube", "YouTube"),
+    ("plugin.video.plutotv", "Pluto TV", "Pluto TV"),
+    ("plugin.video.nasa", "NASA", "NASA Space"),
+    ("plugin.video.esa", "ESA", "ESA Space"),
+    ("plugin.video.iplayerwww", "BBC iPlayer", "CBeebies and CBBC"),
+    ("plugin.video.wdrmaus", "WDR Maus", "Die Maus"),
+    ("plugin.video.zdftivi", "ZDF Tivi", "ZDF Tivi"),
 ]
 
-FAMILY_FAVOURITES = """<favourites>
-    <favourite name="PBS Kids">ActivateWindow(Videos,plugin://plugin.video.pbskids/,return)</favourite>
-    <favourite name="YouTube Family Playlists">ActivateWindow(Videos,plugin://plugin.video.youtube/,return)</favourite>
-    <favourite name="SoLoKodi Family Setup">RunAddon(plugin.program.solokodi.setup)</favourite>
-</favourites>
-"""
+KIDS_SKIN = "skin.bello.10"
+KIDS_THEME_COLORS = [
+    ("lookandfeel.skincolor", "FF42A5F5"),
+    ("lookandfeel.skincolors", "FFFF7043"),
+]
 
 
-def notify(message, heading="SoLoKodi"):
+def notify(message, heading="SoLoKodi Kids"):
     xbmcgui.Dialog().notification(heading, message, xbmcgui.NOTIFICATION_INFO, 5000)
 
 
@@ -52,10 +61,24 @@ def json_rpc(method, params=None):
         return {"error": {"message": result}}
 
 
-def install_official_addons():
+def build_kids_favourites():
+    lines = ["<favourites>"]
+    for addon_id, _label, favourite_name in KIDS_ADDONS:
+        escaped_name = xml.sax.saxutils.escape(favourite_name)
+        lines.append(
+            '    <favourite name="{0}">ActivateWindow(Videos,plugin://{1}/,return)</favourite>'.format(
+                escaped_name, addon_id
+            )
+        )
+    lines.append('    <favourite name="SoLoKodi Kids Setup">RunAddon(plugin.program.solokodi.setup)</favourite>')
+    lines.append("</favourites>")
+    return "\n".join(lines) + "\n"
+
+
+def install_kids_addons():
     installed = []
     failed = []
-    for addon_id, label in OFFICIAL_ADDONS:
+    for addon_id, label, _favourite_name in KIDS_ADDONS:
         if not xbmc.getCondVisibility("System.HasAddon({0})".format(addon_id)):
             xbmc.executebuiltin("InstallAddon({0})".format(addon_id), True)
         response = json_rpc("Addons.SetAddonEnabled", {"addonid": addon_id, "enabled": True})
@@ -66,59 +89,87 @@ def install_official_addons():
     return installed, failed
 
 
-def write_family_favourites():
+def apply_kids_theme():
+    for setting, value in KIDS_THEME_COLORS:
+        json_rpc("Settings.SetSettingValue", {"setting": setting, "value": value})
+
+    if not xbmc.getCondVisibility("System.HasAddon({0})".format(KIDS_SKIN)):
+        xbmc.executebuiltin("InstallAddon({0})".format(KIDS_SKIN), True)
+
+    if xbmc.getCondVisibility("System.HasAddon({0})".format(KIDS_SKIN)):
+        json_rpc("Addons.SetAddonEnabled", {"addonid": KIDS_SKIN, "enabled": True})
+        json_rpc("Settings.SetSettingValue", {"setting": "lookandfeel.skin", "value": KIDS_SKIN})
+        xbmc.executebuiltin("ReloadSkin()")
+        return True
+    return False
+
+
+def write_kids_favourites():
     profile_dir = xbmcvfs.translatePath("special://profile/")
     target = profile_dir.rstrip("/\\") + "/favourites.xml"
     with xbmcvfs.File(target, "w") as handle:
-        handle.write(FAMILY_FAVOURITES)
+        handle.write(build_kids_favourites())
     return target
 
 
-def run_family_setup():
+def run_kids_setup():
     ok = xbmcgui.Dialog().yesno(
-        "SoLoKodi Family Setup",
-        "This setup installs official kid-friendly add-ons and creates family shortcuts. It does not install piracy repositories or provider scrapers.",
+        "SoLoKodi Kids Build",
+        "Welcome! This installs every official kids source we could find, "
+        "creates fun shortcuts on your home screen, and applies a colorful theme. Ready?",
     )
     if not ok:
         return
 
-    installed, failed = install_official_addons()
-    write_family_favourites()
+    installed, failed = install_kids_addons()
+    write_kids_favourites()
+    themed = apply_kids_theme()
     ADDON.setSetting("setup_complete", "true")
+    ADDON.setSetting("build_profile", BUILD_PROFILE)
 
-    lines = []
+    lines = ["Kids build setup complete!"]
     if installed:
         lines.append("Enabled: " + ", ".join(installed))
     if failed:
-        lines.append("Install manually from Kodi official repo: " + ", ".join(failed))
-    lines.append("Restart Kodi, then apply the parent lock checklist.")
-    xbmcgui.Dialog().ok("SoLoKodi Family Setup", "\n".join(lines))
-    show_lock_checklist()
+        lines.append("Install manually from the Kodi official repo: " + ", ".join(failed))
+    if themed:
+        lines.append("Applied the Bello kids-friendly skin and bright colors.")
+    else:
+        lines.append("Bright accent colors applied. Install skin.bello.10 from the official repo for the full look.")
+    lines.append("Restart Kodi to see all shortcuts and the new theme.")
+    xbmcgui.Dialog().ok("SoLoKodi Kids Build", "\n".join(lines))
 
 
-def show_lock_checklist():
+def run_family_setup():
+    run_kids_setup()
+
+
+def show_parent_tips():
     xbmcgui.Dialog().textviewer(
-        "Parent Lock Checklist",
+        "Parent Tips (Optional)",
         "\n".join(
             [
-                "1. Create or switch to a Kids profile.",
-                "2. Set the Kids profile to separate media sources.",
-                "3. Enable Master Lock with a parent PIN.",
-                "4. Lock settings, file manager, add-ons, and source editing.",
-                "5. Remove Videos > Files from the Kids home screen if your skin allows it.",
-                "6. Keep Real-Debrid authorization only in the parent-managed profile.",
-                "7. Add only approved local folders and the SoLoKodi favourites to the Kids profile.",
+                "SoLoKodi Kids is built for fun — no restrictions on kid content sources.",
                 "",
-                "Real-Debrid is for lawful personal media access only. Do not add piracy repositories or scraper add-ons to the Kids profile.",
+                "Optional ideas if you share this device with adults:",
+                "1. Create a separate Kids profile in Kodi.",
+                "2. Use Master Lock if you want to hide settings from little hands.",
+                "3. Real-Debrid (optional) stays in this menu for parent-managed media.",
+                "",
+                "That's it. Let the kids explore PBS, TVO, NASA, CBeebies, and more!",
             ]
         ),
     )
 
 
+def show_lock_checklist():
+    show_parent_tips()
+
+
 def poll_for_credentials(device_code, interval, expires_in):
     deadline = time.time() + min(int(expires_in), 1800)
     progress = xbmcgui.DialogProgress()
-    progress.create("Real-Debrid", "Waiting for parent authorization...")
+    progress.create("Real-Debrid", "Waiting for authorization...")
 
     while time.time() < deadline and not progress.iscanceled():
         remaining = int(deadline - time.time())

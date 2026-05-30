@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <settings version="1">
-  <section id="realdebrid" label="Real-Debrid">
+  <section id="build" label="Kids Build">
+    <category id="status" label="Status">
+      <group id="1">
+        <setting id="setup_complete" type="boolean" label="Kids build setup complete" default="false" enable="false"/>
+        <setting id="build_profile" type="string" label="Active build profile" default="kids" enable="false"/>
+      </group>
+    </category>
+  </section>
+  <section id="realdebrid" label="Real-Debrid (Optional)">
     <category id="auth" label="Authorization">
       <group id="1">
         <setting id="rd_client_id" type="string" label="Client ID" default="" enable="false"/>
@@ -8,7 +16,6 @@
         <setting id="rd_access_token" type="string" label="Access Token" default="" option="hidden" enable="false"/>
         <setting id="rd_refresh_token" type="string" label="Refresh Token" default="" option="hidden" enable="false"/>
         <setting id="rd_expires_at" type="string" label="Expires At" default="" enable="false"/>
-        <setting id="setup_complete" type="boolean" label="Family setup complete" default="false" enable="false"/>
       </group>
     </category>
   </section>

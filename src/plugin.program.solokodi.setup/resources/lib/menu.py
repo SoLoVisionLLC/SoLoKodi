@@ -19,14 +19,14 @@ def add_item(label, action, description):
 
 def show_menu():
     add_item(
-        "Run Family Setup",
-        "family_setup",
-        "Install official kid-safe add-ons and create SoLoKodi shortcuts.",
+        "Run Kids Build Setup",
+        "kids_setup",
+        "Install every official kids source, create shortcuts, and apply a fun colorful theme.",
     )
     add_item(
         "Connect Real-Debrid",
         "connect_rd",
-        "Authorize this Kodi profile with Real-Debrid using the device flow.",
+        "Optional: authorize this Kodi profile with Real-Debrid using the device flow.",
     )
     add_item(
         "Check Real-Debrid Account",
@@ -34,9 +34,9 @@ def show_menu():
         "Confirm that the local Real-Debrid token works.",
     )
     add_item(
-        "Show Parent Lock Checklist",
-        "lock_checklist",
-        "Open the profile, source, and settings lock checklist.",
+        "Parent Tips (Optional)",
+        "parent_tips",
+        "Optional profile and lock ideas if adults share this device.",
     )
     add_item(
         "Clear Real-Debrid Authorization",
@@ -50,14 +50,14 @@ def run():
     params = urllib.parse.parse_qs(sys.argv[2][1:])
     action = params.get("action", ["menu"])[0]
 
-    if action == "family_setup":
-        setup.run_family_setup()
+    if action in ("kids_setup", "family_setup"):
+        setup.run_kids_setup()
     elif action == "connect_rd":
         setup.connect_real_debrid()
     elif action == "check_rd":
         setup.check_real_debrid()
-    elif action == "lock_checklist":
-        setup.show_lock_checklist()
+    elif action in ("parent_tips", "lock_checklist"):
+        setup.show_parent_tips()
     elif action == "clear_rd":
         setup.clear_real_debrid()
     else:
