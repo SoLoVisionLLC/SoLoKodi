@@ -4,6 +4,7 @@ RD_TOKEN_URL = "https://api.real-debrid.com/oauth/v2/token"
 TMDB_API_ROOT = "https://api.themoviedb.org/3"
 TMDB_IMAGE_ROOT = "https://image.tmdb.org/t/p/w500"
 YTS_API_ROOT = "https://yts.mx/api/v2"
+APIBAY_API_ROOT = "https://apibay.org/q.php"
 
 VIDEO_EXTENSIONS = (".mkv", ".mp4", ".avi", ".m4v", ".mov", ".wmv", ".webm")
 

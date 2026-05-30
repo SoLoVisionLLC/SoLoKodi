@@ -1,5 +1,6 @@
 import sys
 import urllib.parse
+import os
 
 import xbmc
 import xbmcaddon
@@ -31,10 +32,16 @@ def notify(message):
     xbmcgui.Dialog().notification("SoLoKodi Kids RD", message, xbmcgui.NOTIFICATION_INFO, 4000)
 
 
+def _premium_seconds(user):
+    try:
+        return int(user.get("premium") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
 def require_real_debrid():
     try:
-        RealDebridClient().get_user()
-        return True
+        user = RealDebridClient().get_user()
     except RealDebridAuthError as exc:
         xbmcgui.Dialog().ok(
             "Real-Debrid Required",
@@ -44,6 +51,15 @@ def require_real_debrid():
     except RealDebridError as exc:
         xbmcgui.Dialog().ok("Real-Debrid Error", str(exc))
         return False
+
+    if _premium_seconds(user) <= 0:
+        xbmcgui.Dialog().ok(
+            "Real-Debrid Subscription",
+            "Your Real-Debrid account is connected as {0}, but premium time is not active.\n\n"
+            "Renew at real-debrid.com, then try again.".format(user.get("username", "unknown")),
+        )
+        return False
+    return True
 
 
 def add_folder(label, description, **params):
@@ -63,7 +79,47 @@ def add_playable(label, description, art=None, **params):
     xbmcplugin.addDirectoryItem(HANDLE, url, item, isFolder=False)
 
 
+def show_status():
+    try:
+        user = RealDebridClient().get_user()
+    except RealDebridAuthError as exc:
+        xbmcgui.Dialog().ok("Real-Debrid Status", str(exc))
+        return
+    except RealDebridError as exc:
+        xbmcgui.Dialog().ok("Real-Debrid Status", str(exc))
+        return
+
+    premium = _premium_seconds(user)
+    tmdb_ready = bool(ADDON.getSetting("tmdb_api_key"))
+    lines = [
+        "User: {0}".format(user.get("username", "unknown")),
+        "Account type: {0}".format(user.get("type", "unknown")),
+        "Premium seconds remaining: {0}".format(premium),
+        "TMDb key saved: {0}".format("yes" if tmdb_ready else "no — add one in this add-on settings"),
+        "",
+        "Discover Movies/TV needs a free TMDb API key.",
+        "Playback uses your Real-Debrid cache first, then searches for family titles.",
+    ]
+    xbmcgui.Dialog().ok("Real-Debrid Status", "\n".join(lines))
+
+
 def show_root_menu():
+    status_line = "Check Real-Debrid connection and TMDb setup"
+    try:
+        user = RealDebridClient().get_user()
+        premium = _premium_seconds(user)
+        if premium > 0:
+            hours = max(1, premium // 3600)
+            status_line = "Connected as {0} — about {1} hours of premium left".format(
+                user.get("username", "unknown"),
+                hours,
+            )
+        else:
+            status_line = "Connected as {0}, but premium is not active".format(user.get("username", "unknown"))
+    except RealDebridError:
+        status_line = "Real-Debrid is not connected — use SoLoKodi Setup"
+
+    add_folder("Real-Debrid Status", status_line, action="status")
     add_folder(
         "My Kids Library",
         "Movies and shows already in your Real-Debrid account, filtered for kids.",
@@ -98,19 +154,25 @@ def show_library(kids_only):
     downloads = rd.list_downloads() or []
 
     if not torrents and not downloads:
-        xbmcgui.Dialog().ok("Kids Library", "Your Real-Debrid library is empty.")
+        xbmcgui.Dialog().ok(
+            "Real-Debrid Library",
+            "Your Real-Debrid library is empty.\n\n"
+            "Try Discover Kids Movies, or add family titles at real-debrid.com first.",
+        )
         return
 
     item_count = 0
+    skipped = 0
     for torrent in torrents:
         title = torrent.get("filename") or torrent.get("original_filename") or "Torrent"
         if kids_only and not looks_like_kids_content(title):
+            skipped += 1
             continue
         status = torrent.get("status") or "unknown"
-        add_playable(
+        add_folder(
             title,
-            "Status: {0}".format(status),
-            action="play_torrent",
+            "Status: {0} — choose a video file to play".format(status),
+            action="torrent_files",
             torrent_id=torrent.get("id"),
         )
         item_count += 1
@@ -118,6 +180,7 @@ def show_library(kids_only):
     for download in downloads:
         title = download.get("filename") or "Download"
         if kids_only and not looks_like_kids_content(title):
+            skipped += 1
             continue
         add_playable(
             title,
@@ -127,11 +190,54 @@ def show_library(kids_only):
         )
         item_count += 1
 
-    if kids_only and item_count == 0:
-        xbmcgui.Dialog().ok(
-            "Kids Library",
-            "Nothing in your Real-Debrid account matched kids keywords yet. "
-            "Try Discover Kids Movies or add family titles to Real-Debrid first.",
+    if item_count == 0:
+        if kids_only and skipped:
+            xbmcgui.Dialog().ok(
+                "Kids Library",
+                "You have {0} Real-Debrid item(s), but none matched kids keywords.\n\n"
+                "Try All Real-Debrid Torrents, or use Discover Kids Movies.".format(skipped),
+            )
+        else:
+            xbmcgui.Dialog().ok("Kids Library", "Nothing matched this view yet.")
+        return
+    end_directory()
+
+
+def show_torrent_files(torrent_id):
+    if not require_real_debrid():
+        return
+
+    player = KidsPlayer()
+    try:
+        video_files, info = player.list_video_files(torrent_id)
+    except RealDebridError as exc:
+        xbmcgui.Dialog().ok("Real-Debrid", str(exc))
+        return
+
+    if not video_files:
+        xbmcgui.Dialog().ok("Real-Debrid", "No video files are available in this torrent yet.")
+        return
+
+    title = info.get("filename") or info.get("original_filename") or "Torrent"
+    if len(video_files) == 1:
+        try:
+            player.play_torrent_id(torrent_id, file_id=video_files[0]["id"])
+            notify("Playing {0}".format(title))
+        except RealDebridError as exc:
+            xbmcgui.Dialog().ok("Playback", str(exc))
+        return
+
+    for video in video_files:
+        path = video.get("path") or "Video"
+        label = os.path.basename(path)
+        size_mb = int(int(video.get("bytes") or 0) / (1024 * 1024))
+        plot = "{0} — {1} MB".format(title, size_mb) if size_mb else title
+        add_playable(
+            label,
+            plot,
+            action="play_torrent_file",
+            torrent_id=torrent_id,
+            file_id=video.get("id"),
         )
     end_directory()
 
@@ -180,7 +286,7 @@ def show_discover_tv(page):
         title = show.get("name") or "Series"
         year = (show.get("first_air_date") or "")[:4]
         label = "{0} ({1})".format(title, year) if year else title
-        plot = show.get("overview") or ""
+        plot = (show.get("overview") or "") + "\n\nSearches Real-Debrid first, then tries to find a family-safe torrent."
         poster = TmdbClient.poster_url(show.get("poster_path"))
         add_playable(
             label,
@@ -204,7 +310,10 @@ def handle_play_movie(tmdb_id):
         title = details.get("title") or "Movie"
         year = (details.get("release_date") or "")[:4] or None
         imdb_id = ((details.get("external_ids") or {}).get("imdb_id")) or None
-        KidsPlayer().play_movie(title, year=year, imdb_id=imdb_id)
+        result = KidsPlayer().play_movie(title, year=year, imdb_id=imdb_id)
+        if isinstance(result, str):
+            show_torrent_files(result)
+            return
         notify("Playing {0}".format(title))
     except (TmdbError, RealDebridError, ResolverError) as exc:
         xbmcgui.Dialog().ok("Playback", str(exc))
@@ -216,17 +325,26 @@ def handle_play_tv(tmdb_id):
     try:
         details = TmdbClient().tv_details(tmdb_id)
         title = details.get("name") or "Series"
-        KidsPlayer().play_tv_from_library(title)
+        year = (details.get("first_air_date") or "")[:4] or None
+        result = KidsPlayer().play_tv(title, year=year)
+        if isinstance(result, str):
+            show_torrent_files(result)
+            return
         notify("Playing {0}".format(title))
-    except (TmdbError, RealDebridError) as exc:
+    except (TmdbError, RealDebridError, ResolverError) as exc:
         xbmcgui.Dialog().ok("Playback", str(exc))
 
 
 def handle_play_torrent(torrent_id):
+    show_torrent_files(torrent_id)
+
+
+def handle_play_torrent_file(torrent_id, file_id):
     if not require_real_debrid():
         return
     try:
-        KidsPlayer().play_torrent_id(torrent_id)
+        KidsPlayer().play_torrent_id(torrent_id, file_id=file_id)
+        notify("Starting playback")
     except RealDebridError as exc:
         xbmcgui.Dialog().ok("Playback", str(exc))
 
@@ -245,7 +363,9 @@ def run():
     action = params.get("action", ["menu"])[0]
     page = int(params.get("page", ["1"])[0])
 
-    if action == "library_kids":
+    if action == "status":
+        show_status()
+    elif action == "library_kids":
         show_library(kids_only=True)
     elif action == "library_all":
         show_library(kids_only=False)
@@ -253,12 +373,19 @@ def run():
         show_discover_movies(page)
     elif action == "discover_tv":
         show_discover_tv(page)
+    elif action == "torrent_files":
+        show_torrent_files(params.get("torrent_id", [""])[0])
     elif action == "play_movie":
         handle_play_movie(params.get("tmdb_id", [""])[0])
     elif action == "play_tv":
         handle_play_tv(params.get("tmdb_id", [""])[0])
     elif action == "play_torrent":
         handle_play_torrent(params.get("torrent_id", [""])[0])
+    elif action == "play_torrent_file":
+        handle_play_torrent_file(
+            params.get("torrent_id", [""])[0],
+            params.get("file_id", [""])[0],
+        )
     elif action == "play_download":
         handle_play_download(params.get("link", [""])[0])
     else:

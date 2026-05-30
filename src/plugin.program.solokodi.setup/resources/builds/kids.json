@@ -61,13 +61,13 @@
       "menu_group": "tvshows"
     }
   ],
-  "generated_at": "2026-05-30T23:01:17Z",
+  "generated_at": "2026-05-30T23:06:17Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/kids/manifest.json",
   "repository": {
     "id": "repository.solokodi",
     "name": "SoLoKodi Kids Repository",
     "url": "https://solokodi.sololink.cloud/repo/addons.xml",
-    "version": "0.4.7"
+    "version": "0.4.8"
   },
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
@@ -111,7 +111,7 @@
       "id": "plugin.video.solokodi.kidsrd",
       "label": "SoLoKodi Kids Real-Debrid",
       "menu_group": "movies",
-      "version": "0.1.2"
+      "version": "0.2.0"
     }
   ],
   "website": "https://solokodi.sololink.cloud",
