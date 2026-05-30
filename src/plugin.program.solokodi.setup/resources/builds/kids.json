@@ -61,18 +61,18 @@
       "menu_group": "tvshows"
     }
   ],
-  "generated_at": "2026-05-30T22:31:58Z",
+  "generated_at": "2026-05-30T22:54:06Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/kids/manifest.json",
   "repository": {
     "id": "repository.solokodi",
     "name": "SoLoKodi Kids Repository",
     "url": "https://solokodi.sololink.cloud/repo/addons.xml",
-    "version": "0.4.5"
+    "version": "0.4.6"
   },
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Kids Setup",
-    "version": "0.3.5"
+    "version": "0.3.6"
   },
   "skin": {
     "colors": [

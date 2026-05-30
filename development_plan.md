@@ -13,6 +13,7 @@ update manifest.
 - [x] Install all official kids sources from the Kodi repository (9 add-ons)
 - [x] Generate favourites shortcuts for every kids source
 - [x] Pre-configure Bello home menu and TV/Movies submenus with kids add-ons
+- [x] Force Bello skinshortcuts rebuild (hash invalidation + widget properties)
 - [x] Pre-configure Nimbus home menu widgets via `script.nimbus.helper`
 - [x] Choose Bello or Nimbus skin during setup; switch later from setup menu
 - [x] Apply colorful theme and bright accent colors
