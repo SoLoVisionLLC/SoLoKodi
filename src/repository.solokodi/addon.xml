@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="repository.solokodi" name="SoLoKodi Family Repository" version="0.1.0" provider-name="SoLoVision">
+  <extension point="xbmc.addon.repository" name="SoLoKodi Family Repository">
+    <dir>
+      <info compressed="false">https://solokodi.sololink.cloud/repo/addons.xml</info>
+      <checksum>https://solokodi.sololink.cloud/repo/addons.xml.md5</checksum>
+      <datadir zip="true">https://solokodi.sololink.cloud/repo/</datadir>
+    </dir>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_US">Kid-friendly Kodi setup tools for SoLoKodi.</summary>
+    <description lang="en_US">A family-focused Kodi repository with a setup wizard, official kid-safe add-on shortcuts, profile lock guidance, and parent-managed Real-Debrid authorization for lawful personal media workflows.</description>
+    <platform>all</platform>
+    <license>MIT</license>
+    <website>https://solokodi.sololink.cloud</website>
+  </extension>
+</addon>

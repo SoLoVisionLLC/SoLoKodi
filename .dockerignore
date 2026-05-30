@@ -1,0 +1,5 @@
+.git
+work
+outputs
+__pycache__
+*.pyc

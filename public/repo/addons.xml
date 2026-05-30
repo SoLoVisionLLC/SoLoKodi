@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addons>
+<addon id="plugin.program.solokodi.setup" name="SoLoKodi Family Setup" version="0.1.0" provider-name="SoLoVision">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py">
+    <provides>executable</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_US">Set up a kid-friendly Kodi profile and parent-managed Real-Debrid connection.</summary>
+    <description lang="en_US">Installs official kid-safe add-ons, creates family shortcuts, guides Kodi profile locking, and connects Real-Debrid with the official device authorization flow. No third-party piracy repositories or shared credentials are included.</description>
+    <platform>all</platform>
+    <license>MIT</license>
+    <website>https://solokodi.sololink.cloud</website>
+  </extension>
+</addon>
+<addon id="repository.solokodi" name="SoLoKodi Family Repository" version="0.1.0" provider-name="SoLoVision">
+  <extension point="xbmc.addon.repository" name="SoLoKodi Family Repository">
+    <dir>
+      <info compressed="false">https://solokodi.sololink.cloud/repo/addons.xml</info>
+      <checksum>https://solokodi.sololink.cloud/repo/addons.xml.md5</checksum>
+      <datadir zip="true">https://solokodi.sololink.cloud/repo/</datadir>
+    </dir>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_US">Kid-friendly Kodi setup tools for SoLoKodi.</summary>
+    <description lang="en_US">A family-focused Kodi repository with a setup wizard, official kid-safe add-on shortcuts, profile lock guidance, and parent-managed Real-Debrid authorization for lawful personal media workflows.</description>
+    <platform>all</platform>
+    <license>MIT</license>
+    <website>https://solokodi.sololink.cloud</website>
+  </extension>
+</addon>
+</addons>
