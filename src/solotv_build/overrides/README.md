@@ -21,11 +21,24 @@ binary/branding assets** that simple text replacement can't handle.
   rebranded (Diggz → SoLoTV / SoLoVision). You only need overrides here for files
   that text replacement cannot fix (images, fonts, pre-rendered text, etc.).
 
-## Finding branded assets
+## Brand images are generated from masters (don't hand-edit)
 
-Run the pipeline once with `--inspect` to list the largest images and any files
-whose path or name contains `diggz`/`xenon`/`chef`, then add overrides for the
-ones you want to rebrand.
+The image overrides in this folder are **derived** from two master images in
+`src/solotv_build/brand/` (`solotv_bg_master.png`, `solotv_icon_master.png`) by
+`scripts/make_solotv_overrides.py`, which crops/resizes each to the exact
+dimensions Kodi expects. To rebrand, edit a master (keep the brand palette) and
+regenerate — don't edit the derived files by hand:
+
+```
+python scripts/make_solotv_overrides.py      # refresh overrides + build-picker card
+python scripts/build_solotv_build.py K21     # bake them into the build zip
+```
+
+**Brand palette:** Dark Navy `#1B2232`, Deep Red `#BC2026`,
+Cool Light Grey `#A9B2BC`, White `#FFFFFF`.
+
+To add a *new* branded asset, find its path/dimensions with `--inspect`, add a
+target to `scripts/make_solotv_overrides.py`, and regenerate:
 
 ```
 python scripts/build_solotv_build.py --inspect K21
