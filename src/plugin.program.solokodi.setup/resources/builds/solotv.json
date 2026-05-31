@@ -7,9 +7,10 @@
     "description": "SoLo-branded streaming build \u2014 movies, TV, live channels, and Real-Debrid-ready add-ons via the SoLoTV repository.",
     "id": "solotv",
     "name": "SoLoTV",
-    "version": "1.0.2"
+    "version": "1.0.3"
   },
   "build_type": "streaming",
+  "card_image": "solotv.png",
   "content_addons": [],
   "favourites": [
     {
@@ -21,7 +22,7 @@
       "name": "SoLoTV Build Wizard"
     }
   ],
-  "generated_at": "2026-05-31T11:09:08Z",
+  "generated_at": "2026-05-31T12:04:25Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/solotv/manifest.json",
   "repository": {
     "id": "repository.solokodi",
@@ -30,10 +31,11 @@
     "version": "0.5.0"
   },
   "repository_id": "repository.solokodi",
+  "requires_debrid": true,
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Setup",
-    "version": "0.4.1"
+    "version": "0.5.0"
   },
   "setup_favourite": "SoLoTV Setup",
   "skin": {
@@ -56,6 +58,7 @@
     "wizard_addon_id": "plugin.program.chef21",
     "wizard_label": "SoLoTV Build Wizard"
   },
+  "tagline": "Stream everything. SoLo simple.",
   "website": "https://solokodi.sololink.cloud/solotv/",
   "wizard_steps": [
     {

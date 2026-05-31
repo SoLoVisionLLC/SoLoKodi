@@ -3,8 +3,9 @@
     "description": "Every official kids source pre-loaded in the home menu, fun theme, Real-Debrid kids streaming, and one-tap shortcuts.",
     "id": "kids",
     "name": "SoLoKodi Kids",
-    "version": "1.3.0"
+    "version": "1.3.1"
   },
+  "card_image": "kids.png",
   "content_addons": [
     {
       "favourite": "PBS Kids",
@@ -61,7 +62,7 @@
       "menu_group": "tvshows"
     }
   ],
-  "generated_at": "2026-05-31T11:09:08Z",
+  "generated_at": "2026-05-31T12:04:25Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/kids/manifest.json",
   "repository": {
     "id": "repository.solokodi",
@@ -70,10 +71,11 @@
     "version": "0.5.0"
   },
   "repository_id": "repository.solokodi",
+  "requires_debrid": false,
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Setup",
-    "version": "0.4.1"
+    "version": "0.5.0"
   },
   "setup_favourite": "SoLoKodi Kids Setup",
   "skin": {
@@ -117,6 +119,7 @@
       "version": "0.2.3"
     }
   ],
+  "tagline": "Safe, colorful, kid-first Kodi.",
   "website": "https://solokodi.sololink.cloud",
   "wizard_steps": [
     {

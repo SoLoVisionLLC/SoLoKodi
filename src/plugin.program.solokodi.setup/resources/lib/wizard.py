@@ -37,9 +37,6 @@ def _step_intro(step):
         "solotv_repo": "Adds the SoLoTV file source and installs repository.solotv (SoLo-branded catalog).",
         "solotv_wizard": "Installs the SoLoTV Build Wizard from the SoLoTV repository.",
         "launch_wizard": "Opens the SoLoTV Build Wizard to install the Xenon interface and streaming add-ons.",
-        "diggz_repo": "Adds the SoLoTV file source and installs repository.solotv.",
-        "diggz_wizard": "Installs the SoLoTV Build Wizard.",
-        "launch_diggz": "Opens the SoLoTV Build Wizard to install your interface.",
     }
     required = "Required" if step.get("required", True) else "Optional"
     body = intros.get(step["id"], "Continue with this step?")
@@ -52,7 +49,7 @@ def _step_intro(step):
 
 
 def run_content_addons_step(manifest, progress, index, total):
-    progress.update(int((index / total) * 100), "Installing kids sources...")
+    progress.update(int((index / total) * 100), "Installing sources...")
     installed, failed = build_ops.install_addons(build_config.content_addons(manifest))
     if failed:
         xbmcgui.Dialog().ok(
@@ -81,7 +78,7 @@ def choose_skin(manifest):
             break
 
     choice = xbmcgui.Dialog().select(
-        "Choose your kids home look",
+        "Choose your home look",
         labels,
         preselect=preselect,
     )
@@ -91,7 +88,7 @@ def choose_skin(manifest):
 
 
 def run_theme_step(manifest, progress, index, total):
-    progress.update(int((index / total) * 100), "Applying kids theme...")
+    progress.update(int((index / total) * 100), "Applying theme...")
     skin_id = choose_skin(manifest)
     if not skin_id:
         return False
@@ -101,7 +98,7 @@ def run_theme_step(manifest, progress, index, total):
 
 
 def run_favourites_step(manifest, progress, index, total):
-    progress.update(int((index / total) * 100), "Creating shortcuts and kids home menu...")
+    progress.update(int((index / total) * 100), "Creating shortcuts and home menu...")
     build_ops.write_favourites(manifest)
     menu_ready = menu_layout.apply_kids_home_menu(manifest)
     build_ops.sync_build_settings(manifest)
@@ -133,11 +130,6 @@ def run_tmdb_step():
     except RuntimeError:
         xbmcgui.Dialog().ok("TMDb", "Install SoLoKodi Kids Real-Debrid first, then try again.")
         return False
-
-
-def run_solotv_setup():
-    build_config.set_active_profile("solotv")
-    run_setup_wizard()
 
 
 def run_setup_wizard():
@@ -179,15 +171,15 @@ def run_setup_wizard():
             menu_ready = run_favourites_step(manifest, progress, index, total)
             detail = [] if menu_ready else ["shortcuts not configured"]
             results.append((step["label"], menu_ready, detail))
-        elif step_id in ("solotv_repo", "diggz_repo"):
+        elif step_id == "solotv_repo":
             progress.update(int((index / total) * 100), "Installing SoLoTV repository...")
             ok = solotv_repo.install_streaming_repository(manifest)
             results.append((step["label"], ok, [] if ok else ["SoLoTV repository"]))
-        elif step_id in ("solotv_wizard", "diggz_wizard"):
+        elif step_id == "solotv_wizard":
             progress.update(int((index / total) * 100), "Installing SoLoTV Build Wizard...")
             ok = solotv_repo.install_build_wizard(manifest)
             results.append((step["label"], ok, [] if ok else ["SoLoTV Build Wizard"]))
-        elif step_id in ("launch_wizard", "launch_diggz"):
+        elif step_id == "launch_wizard":
             progress.close()
             config = build_config.streaming_repo_config(manifest)
             hint = config.get("recommended_build_hint", "")

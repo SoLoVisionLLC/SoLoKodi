@@ -13,8 +13,18 @@ def addon():
 
 
 def profile_id():
-    value = addon().getSetting("build_profile")
-    return value or DEFAULT_PROFILE
+    """Return the profile the user explicitly selected, or empty if none yet."""
+    return addon().getSetting("build_profile") or ""
+
+
+def has_active_profile():
+    """True once a build profile has been chosen via the picker or wizard."""
+    return profile_id() in BUILD_PROFILES
+
+
+def active_profile_id():
+    """Profile to load manifests for, falling back to the default for previews."""
+    return profile_id() or DEFAULT_PROFILE
 
 
 def manifest_path(profile):
@@ -22,8 +32,16 @@ def manifest_path(profile):
     return xbmcvfs.translatePath(base + "/resources/builds/{0}.json".format(profile))
 
 
+def card_image_path(filename):
+    """Resolve a build-card image bundled in the setup add-on resources."""
+    if not filename:
+        return ""
+    base = addon().getAddonInfo("path")
+    return xbmcvfs.translatePath(base + "/resources/media/cards/{0}".format(filename))
+
+
 def load_embedded_manifest(profile=None):
-    profile = profile or profile_id()
+    profile = profile or active_profile_id()
     path = manifest_path(profile)
     if not xbmcvfs.exists(path):
         raise RuntimeError("Build manifest missing for profile: {0}".format(profile))
@@ -115,21 +133,12 @@ def build_type(manifest=None):
 
 def is_streaming_build(manifest=None):
     manifest = manifest or load_embedded_manifest()
-    return build_type(manifest) in ("streaming", "diggz")
-
-
-def is_diggz_build(manifest=None):
-    """Backward-compatible alias."""
-    return is_streaming_build(manifest)
+    return build_type(manifest) == "streaming"
 
 
 def streaming_repo_config(manifest=None):
     manifest = manifest or load_embedded_manifest()
-    return manifest.get("streaming_repo") or manifest.get("diggz") or {}
-
-
-def diggz_config(manifest=None):
-    return streaming_repo_config(manifest)
+    return manifest.get("streaming_repo") or {}
 
 
 def branding(manifest=None):
@@ -137,17 +146,42 @@ def branding(manifest=None):
     return manifest.get("branding") or {}
 
 
+def requires_debrid(manifest=None):
+    manifest = manifest or load_embedded_manifest()
+    return bool(manifest.get("requires_debrid"))
+
+
 def list_profile_manifests():
     base = addon().getAddonInfo("path")
     builds_dir = xbmcvfs.translatePath(base + "/resources/builds/")
     profiles = []
-    for profile_id in BUILD_PROFILES:
-        path = builds_dir.rstrip("/\\") + "/{0}.json".format(profile_id)
+    for profile in BUILD_PROFILES:
+        path = builds_dir.rstrip("/\\") + "/{0}.json".format(profile)
         if xbmcvfs.exists(path):
-            profiles.append(profile_id)
+            profiles.append(profile)
     return profiles
 
 
-def set_active_profile(profile_id):
-    addon().setSetting("build_profile", profile_id)
+def profile_card(profile):
+    """Return display metadata for the build picker for a single profile."""
+    manifest = load_embedded_manifest(profile)
+    build = build_info(manifest)
+    return {
+        "id": build.get("id", profile),
+        "name": build.get("name", profile.title()),
+        "version": build.get("version", "?"),
+        "description": build.get("description", ""),
+        "tagline": manifest.get("tagline") or branding(manifest).get("tagline", ""),
+        "requires_debrid": bool(manifest.get("requires_debrid")),
+        "card_image": card_image_path(manifest.get("card_image", "")),
+    }
+
+
+def build_cards():
+    """Return display metadata for every installed build profile."""
+    return [profile_card(profile) for profile in list_profile_manifests()]
+
+
+def set_active_profile(profile):
+    addon().setSetting("build_profile", profile)
     addon().setSetting("setup_complete", "false")

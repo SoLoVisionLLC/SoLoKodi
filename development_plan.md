@@ -41,7 +41,18 @@ update manifest.
 - [x] v0.2.1 — remove `IsPlayable` on plugin action items (fixes “skipping unplayable item” on Discover)
 - [x] v0.2.3 — Modern Kids TV browse (2015+), IMDB TV search, relaxed torrent matching
 
-### SoLoTV Build (v1.0.2)
+### SoLoKodi Setup (v0.5.0) — Build chooser & maintenance
+
+- [x] Visual **build chooser** (rich `useDetails` cards w/ art, version, tagline) — no Kids default
+- [x] First-run detection: picker shown until a build is chosen
+- [x] **Change Build** action on the dashboard re-opens the chooser
+- [x] **Maintenance** menu — clear cache, clear packages, clear thumbnails, reset build, force close
+- [x] Branded build-card art (`resources/media/cards/kids.png`, `solotv.png`)
+- [x] De-kids-ified shared wizard strings (build-agnostic progress/dialogs)
+- [x] Removed legacy `diggz_*` aliases and dead `run_family_setup`/`show_lock_checklist`
+- [x] `streaming_repo.repository_zip` auto-derived from repo add-on version at build time (no hardcoded version)
+
+### SoLoTV Build (v1.0.3)
 
 - [x] Build manifest `src/builds/solotv.json`
 - [x] `repository.solotv` — SoLo-branded repo (not `repository.diggz`)
@@ -64,6 +75,6 @@ update manifest.
 
 | Profile | Status | Manifest |
 |---------|--------|----------|
-| **Kids** | v1.3.0 | `/builds/kids/manifest.json` |
-| **SoLoTV** | v1.0.2 | `/builds/solotv/manifest.json` |
+| **Kids** | v1.3.1 | `/builds/kids/manifest.json` |
+| **SoLoTV** | v1.0.3 | `/builds/solotv/manifest.json` |
 | Sports | Planned | `/builds/sports/manifest.json` |

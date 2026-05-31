@@ -8,8 +8,6 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from . import wizard
-
 ADDON = xbmcaddon.Addon()
 CLIENT_ID = "X245A4XAIBGVM"
 DEVICE_URL = "https://api.real-debrid.com/oauth/v2/device/code"
@@ -32,14 +30,6 @@ def request_json(url, data=None, headers=None):
     return json.loads(raw) if raw else {}
 
 
-def run_kids_setup():
-    wizard.run_setup_wizard()
-
-
-def run_family_setup():
-    run_kids_setup()
-
-
 def show_parent_tips():
     xbmcgui.Dialog().textviewer(
         "Parent Tips (Optional)",
@@ -56,10 +46,6 @@ def show_parent_tips():
             ]
         ),
     )
-
-
-def show_lock_checklist():
-    show_parent_tips()
 
 
 def poll_for_credentials(device_code, interval, expires_in):

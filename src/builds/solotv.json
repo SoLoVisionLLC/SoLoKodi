@@ -1,8 +1,11 @@
 {
   "id": "solotv",
   "name": "SoLoTV",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "SoLo-branded streaming build — movies, TV, live channels, and Real-Debrid-ready add-ons via the SoLoTV repository.",
+  "tagline": "Stream everything. SoLo simple.",
+  "requires_debrid": true,
+  "card_image": "solotv.png",
   "website": "https://solokodi.sololink.cloud/solotv/",
   "manifest_url": "https://solokodi.sololink.cloud/builds/solotv/manifest.json",
   "repo_url": "https://solokodi.sololink.cloud/repo/addons.xml",
@@ -16,7 +19,6 @@
     "file_source_name": "solotv",
     "file_source_url": "https://solokodi.sololink.cloud/solotv/",
     "repository_id": "repository.solotv",
-    "repository_zip": "repository.solotv-1.0.1.zip",
     "wizard_addon_id": "plugin.program.chef21",
     "wizard_label": "SoLoTV Build Wizard",
     "recommended_build_hint": "In the SoLoTV wizard, choose Xenon 4K (Debrid) or Xenon 4K Free for the full interface."

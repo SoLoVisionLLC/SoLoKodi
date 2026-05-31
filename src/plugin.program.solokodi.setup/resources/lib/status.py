@@ -119,11 +119,6 @@ def step_launch_wizard():
     return {"complete": True, "missing": [], "label": "SoLoTV interface"}
 
 
-step_diggz_repo = step_solotv_repo
-step_diggz_wizard = step_solotv_wizard
-step_launch_diggz = step_launch_wizard
-
-
 def step_realdebrid():
     setup = xbmcaddon.Addon()
     complete = bool(setup.getSetting("rd_access_token"))
@@ -150,9 +145,6 @@ STEP_CHECKS = {
     "solotv_repo": step_solotv_repo,
     "solotv_wizard": step_solotv_wizard,
     "launch_wizard": step_launch_wizard,
-    "diggz_repo": step_diggz_repo,
-    "diggz_wizard": step_diggz_wizard,
-    "launch_diggz": step_launch_diggz,
 }
 
 

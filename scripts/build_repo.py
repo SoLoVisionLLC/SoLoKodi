@@ -96,13 +96,25 @@ def generate_build_manifest(build_path: Path, addon_dirs: list[Path]) -> dict:
         "build_type",
         "branding",
         "streaming_repo",
-        "diggz",
         "favourites",
         "setup_favourite",
         "repository_id",
+        "tagline",
+        "requires_debrid",
+        "card_image",
     ):
         if optional_key in build:
             manifest[optional_key] = build[optional_key]
+
+    streaming_repo = manifest.get("streaming_repo")
+    if streaming_repo and streaming_repo.get("repository_id"):
+        streaming_repo_id = streaming_repo["repository_id"]
+        streaming_repo_dir = SRC / streaming_repo_id
+        if (streaming_repo_dir / "addon.xml").exists():
+            _id, streaming_version, _name = addon_metadata(streaming_repo_dir)
+            streaming_repo["repository_zip"] = "{0}-{1}.zip".format(
+                streaming_repo_id, streaming_version
+            )
 
     for addon in build["solokodi_addons"]:
         meta = solokodi_versions.get(addon["id"], {})

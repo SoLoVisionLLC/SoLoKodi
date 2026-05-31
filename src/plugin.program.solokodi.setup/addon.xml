@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.4.1" provider-name="SoLoVision">
+<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.5.0" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -8,8 +8,8 @@
   </extension>
   <extension point="xbmc.service" library="service.py" start="login"/>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en_US">Guided setup wizard and update manager for SoLoKodi builds.</summary>
-    <description lang="en_US">Sets up SoLoKodi Kids or SoLoTV. SoLoTV uses the SoLoTV Repository and Build Wizard (Xenon-based catalog). Installs shortcuts, Real-Debrid, and checks for build updates.</description>
+    <summary lang="en_US">Build chooser, guided setup wizard, maintenance tools, and update manager for SoLoKodi builds.</summary>
+    <description lang="en_US">Pick your SoLoKodi build (Kids, SoLoTV, and more) from a visual chooser, then run a guided wizard. Includes maintenance tools (clear cache, packages, thumbnails, reset build), Real-Debrid setup, and build update checks.</description>
     <platform>all</platform>
     <license>MIT</license>
     <website>https://solokodi.sololink.cloud</website>

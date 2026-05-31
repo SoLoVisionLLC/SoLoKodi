@@ -5,7 +5,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
-from . import build_config, setup, status, updater, wizard
+from . import build_config, builds, maintenance, setup, status, updater, wizard
 
 ADDON_URL = sys.argv[0]
 HANDLE = int(sys.argv[1])
@@ -42,6 +42,11 @@ def show_menu():
             build.get("version", "?"),
             headline,
         ),
+    )
+    add_item(
+        "Change Build",
+        "pick_build",
+        "Switch between SoLoKodi builds (Kids, SoLoTV, and more) and run its setup.",
     )
     add_item(
         "Build Status",
@@ -83,6 +88,12 @@ def show_menu():
         "Re-install missing pieces and refresh shortcuts without changing your settings.",
     )
     add_item(
+        "Maintenance",
+        "maintenance",
+        "Clear cache, packages, and thumbnails, reset the build, or close Kodi.",
+        is_folder=True,
+    )
+    add_item(
         "Connect Real-Debrid",
         "connect_rd",
         "Authorize this Kodi profile with Real-Debrid using the device flow.",
@@ -106,17 +117,19 @@ def show_menu():
         "Remove Real-Debrid credentials from this Kodi profile.",
     )
 
-    profiles = build_config.list_profile_manifests()
-    if len(profiles) > 1:
-        other = "kids" if build_config.profile_id() == "solotv" else "solotv"
-        if other in profiles:
-            label = "Switch to SoLoKodi Kids" if other == "kids" else "Switch to SoLoTV"
-            add_item(
-                label,
-                "switch_{0}".format(other),
-                "Change the active build profile and run its setup wizard.",
-            )
+    xbmcplugin.endOfDirectory(HANDLE)
 
+
+def show_maintenance_menu():
+    add_item("Clear Cache", "maint_cache", "Delete temporary cache files to free up space.")
+    add_item("Clear Packages", "maint_packages", "Delete downloaded add-on install files (.zip).")
+    add_item("Clear Thumbnails", "maint_thumbs", "Delete cached artwork; it rebuilds automatically.")
+    add_item(
+        "Reset SoLoKodi Build",
+        "maint_reset",
+        "Clear build selection and setup progress (keeps Real-Debrid and TMDb).",
+    )
+    add_item("Force Close Kodi", "maint_quit", "Close Kodi to apply skin or build changes cleanly.")
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -124,15 +137,27 @@ def run():
     params = urllib.parse.parse_qs(sys.argv[2][1:])
     action = params.get("action", ["menu"])[0]
 
-    if action in ("wizard", "kids_setup", "family_setup"):
+    if action == "menu" and not build_config.has_active_profile():
+        builds.show_build_picker()
+        return
+
+    if action in ("wizard", "kids_setup"):
         wizard.run_setup_wizard()
-    elif action == "init_solotv":
-        wizard.run_solotv_setup()
-    elif action == "switch_solotv":
-        wizard.run_solotv_setup()
-    elif action == "switch_kids":
-        build_config.set_active_profile("kids")
-        wizard.run_setup_wizard()
+    elif action == "pick_build":
+        builds.show_build_picker()
+    elif action == "maintenance":
+        show_maintenance_menu()
+    elif action == "maint_cache":
+        maintenance.clear_cache()
+    elif action == "maint_packages":
+        maintenance.clear_packages()
+    elif action == "maint_thumbs":
+        maintenance.clear_thumbnails()
+    elif action == "maint_reset":
+        if maintenance.reset_build():
+            builds.show_build_picker()
+    elif action == "maint_quit":
+        maintenance.force_close()
     elif action == "status":
         xbmcgui.Dialog().textviewer("Build Status", status.status_report())
     elif action == "check_updates":
@@ -160,7 +185,7 @@ def run():
         xbmc.executebuiltin("ActivateWindow(Videos,plugin://plugin.video.solokodi.kidsrd/,return)")
     elif action == "check_rd":
         setup.check_real_debrid()
-    elif action in ("parent_tips", "lock_checklist"):
+    elif action == "parent_tips":
         setup.show_parent_tips()
     elif action == "clear_rd":
         setup.clear_real_debrid()
