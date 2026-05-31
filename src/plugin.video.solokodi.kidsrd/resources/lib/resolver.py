@@ -74,20 +74,31 @@ def _apibay_search(query, categories=None):
     return [entry for entry in payload if isinstance(entry, dict) and entry.get("name")]
 
 
-def _pick_apibay_result(title, year, entries, prefer_tv=False):
+def _pick_apibay_result(title, year, entries, prefer_tv=False, require_year_in_name=None):
     target = normalize_title(title)
     year_text = str(year) if year else ""
+    if require_year_in_name is None:
+        require_year_in_name = not prefer_tv
     scored = []
     for entry in entries:
         name = entry.get("name") or ""
         haystack = normalize_title(name)
-        if not haystack or target not in haystack:
-            overlap = set(target.split()) & set(haystack.split())
-            if len(overlap) < min(2, len(target.split())):
-                continue
-        if year_text and year_text not in name:
+        if not haystack:
             continue
-        if prefer_tv and not re.search(r"s\d{1,2}|season|complete|series", name, re.I):
+        if target in haystack or haystack in target:
+            title_match = True
+        else:
+            overlap = set(target.split()) & set(haystack.split())
+            title_match = len(overlap) >= min(2, len(target.split()))
+        if not title_match:
+            continue
+        if require_year_in_name and year_text and year_text not in name:
+            continue
+        if prefer_tv and not re.search(
+            r"s\d{1,2}e\d{1,2}|s\d{1,2}|season|complete|series|web.?rip|web.?dl",
+            name,
+            re.I,
+        ):
             continue
         seeders = int(entry.get("seeders") or 0)
         if seeders < 1:
@@ -99,22 +110,36 @@ def _pick_apibay_result(title, year, entries, prefer_tv=False):
     return scored[0][1]
 
 
-def _source_from_apibay(title, year=None, prefer_tv=False):
-    categories = "205,207" if prefer_tv else "201,208,200"
+def _source_from_apibay(title, year=None, prefer_tv=False, imdb_id=None, require_year_in_name=None):
+    categories = "205,207,208" if prefer_tv else "201,208,200"
     queries = []
+    if imdb_id:
+        queries.append(imdb_id)
     if year:
         queries.append("{0} {1}".format(title, year))
     queries.append(title)
     if prefer_tv:
-        queries.insert(0, "{0} complete series".format(title))
-        queries.insert(0, "{0} season 1".format(title))
+        queries.extend(
+            [
+                "{0} season 1".format(title),
+                "{0} s01".format(title),
+                "{0} complete".format(title),
+                "{0} 1080p".format(title),
+            ]
+        )
 
     seen = set()
     for query in queries:
         if query in seen:
             continue
         seen.add(query)
-        entry = _pick_apibay_result(title, year, _apibay_search(query, categories), prefer_tv=prefer_tv)
+        entry = _pick_apibay_result(
+            title,
+            year,
+            _apibay_search(query, categories),
+            prefer_tv=prefer_tv,
+            require_year_in_name=require_year_in_name,
+        )
         if not entry:
             continue
         magnet = _magnet_from_apibay(entry)
@@ -208,13 +233,36 @@ def find_movie_magnet(title, year=None, imdb_id=None):
     raise ResolverError("No torrent source found for {0}. {1}".format(title, detail))
 
 
-def find_tv_magnet(title, year=None):
-    fallback = _source_from_apibay(title, year=year, prefer_tv=True)
-    if fallback:
-        return fallback
+def find_tv_magnet(title, year=None, imdb_id=None):
+    if imdb_id:
+        imdb_id = imdb_id if imdb_id.startswith("tt") else "tt{0}".format(str(imdb_id).zfill(7))
+
+    source = _source_from_apibay(
+        title,
+        year=year,
+        prefer_tv=True,
+        imdb_id=imdb_id,
+        require_year_in_name=False,
+    )
+    if source:
+        return source
+
+    source = _source_from_apibay(
+        title,
+        year=year,
+        prefer_tv=False,
+        imdb_id=imdb_id,
+        require_year_in_name=False,
+    )
+    if source:
+        return source
+
     raise ResolverError(
-        "No TV torrent source found for {0}. Add the series to Real-Debrid from the web app, "
-        "then try My Kids Library.".format(title)
+        "No TV torrent found for {0}. Real-Debrid does not include a show catalog — "
+        "it only streams magnets you or this add-on add. Try All Real-Debrid Torrents "
+        "if you added the series at real-debrid.com, or search for the show there first.".format(
+            title
+        )
     )
 
 

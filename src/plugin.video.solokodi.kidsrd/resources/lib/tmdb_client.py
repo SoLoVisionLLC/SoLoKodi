@@ -51,16 +51,16 @@ class TmdbClient:
             },
         )
 
-    def discover_kids_tv(self, page=1):
-        return self._request(
-            "/discover/tv",
-            {
-                "with_genres": "16,10762",
-                "sort_by": "popularity.desc",
-                "page": page,
-                "include_adult": "false",
-            },
-        )
+    def discover_kids_tv(self, page=1, modern_only=False):
+        params = {
+            "with_genres": "16|10762|10751",
+            "sort_by": "first_air_date.desc" if modern_only else "popularity.desc",
+            "page": page,
+            "include_adult": "false",
+        }
+        if modern_only:
+            params["first_air_date.gte"] = "2015-01-01"
+        return self._request("/discover/tv", params)
 
     def movie_details(self, movie_id):
         return self._request("/movie/{0}".format(movie_id), {"append_to_response": "external_ids"})

@@ -139,8 +139,14 @@ def show_root_menu():
     )
     add_folder(
         "Discover Kids TV",
-        "Popular kids and animation series from TMDb.",
+        "Popular kids, family, and animation series from TMDb.",
         action="discover_tv",
+        page=1,
+    )
+    add_folder(
+        "Modern Kids TV (2015+)",
+        "Recent kids and family series — Bluey, Gabby's Dollhouse, and more.",
+        action="discover_tv_modern",
         page=1,
     )
     add_folder(
@@ -292,13 +298,13 @@ def show_discover_movies(page):
     end_directory()
 
 
-def show_discover_tv(page):
+def show_discover_tv(page, modern_only=False):
     if not require_real_debrid():
         finish_directory(succeeded=False)
         return
 
     try:
-        payload = TmdbClient().discover_kids_tv(page=page)
+        payload = TmdbClient().discover_kids_tv(page=page, modern_only=modern_only)
     except TmdbError as exc:
         xbmcgui.Dialog().ok("TMDb Setup", str(exc))
         finish_directory(succeeded=False)
@@ -308,7 +314,9 @@ def show_discover_tv(page):
         title = show.get("name") or "Series"
         year = (show.get("first_air_date") or "")[:4]
         label = "{0} ({1})".format(title, year) if year else title
-        plot = (show.get("overview") or "") + "\n\nSearches Real-Debrid first, then tries to find a family-safe torrent."
+        plot = (show.get("overview") or "") + (
+            "\n\nChecks your Real-Debrid library first, then searches for a torrent."
+        )
         poster = TmdbClient.poster_url(show.get("poster_path"))
         add_action(
             label,
@@ -319,8 +327,14 @@ def show_discover_tv(page):
         )
 
     total_pages = int(payload.get("total_pages") or 1)
+    next_action = "discover_tv_modern" if modern_only else "discover_tv"
     if page < total_pages:
-        add_folder("Next page", "More kids TV", action="discover_tv", page=page + 1)
+        add_folder(
+            "Next page",
+            "More kids TV",
+            action=next_action,
+            page=page + 1,
+        )
     end_directory()
 
 
@@ -348,7 +362,8 @@ def handle_play_tv(tmdb_id):
         details = TmdbClient().tv_details(tmdb_id)
         title = details.get("name") or "Series"
         year = (details.get("first_air_date") or "")[:4] or None
-        result = KidsPlayer().play_tv(title, year=year)
+        imdb_id = ((details.get("external_ids") or {}).get("imdb_id")) or None
+        result = KidsPlayer().play_tv(title, year=year, imdb_id=imdb_id)
         if isinstance(result, str):
             show_torrent_files(result)
             return
@@ -394,7 +409,9 @@ def run():
     elif action == "discover_movies":
         show_discover_movies(page)
     elif action == "discover_tv":
-        show_discover_tv(page)
+        show_discover_tv(page, modern_only=False)
+    elif action == "discover_tv_modern":
+        show_discover_tv(page, modern_only=True)
     elif action == "torrent_files":
         show_torrent_files(params.get("torrent_id", [""])[0])
     elif action == "play_movie":

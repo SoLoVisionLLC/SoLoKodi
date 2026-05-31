@@ -39,7 +39,7 @@ update manifest.
 - [x] Real-Debrid status screen (premium time + TMDb key)
 - [x] v0.2.1 — always call `endOfDirectory` on empty/error paths (fixes library browse failures)
 - [x] v0.2.1 — remove `IsPlayable` on plugin action items (fixes “skipping unplayable item” on Discover)
-- [x] v0.2.2 — browser User-Agent on HTTP requests (fixes torrent lookup HTTP 403)
+- [x] v0.2.3 — Modern Kids TV browse (2015+), IMDB TV search, relaxed torrent matching
 
 ## Next Up
 

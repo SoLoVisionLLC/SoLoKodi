@@ -88,7 +88,7 @@ class KidsPlayer:
             progress.close()
             raise
 
-    def play_tv(self, title, year=None):
+    def play_tv(self, title, year=None, imdb_id=None):
         library_match = self.find_library_match(title, year)
         if library_match:
             return self.play_torrent_id(library_match["id"])
@@ -96,7 +96,7 @@ class KidsPlayer:
         progress = xbmcgui.DialogProgress()
         progress.create("SoLoKodi Kids RD", "Finding {0}...".format(title))
         try:
-            source = find_tv_magnet(title, year=year)
+            source = find_tv_magnet(title, year=year, imdb_id=imdb_id)
             progress.update(70, "Starting stream...")
             result = self._play_magnet_source(source, progress=progress)
             progress.close()
@@ -111,13 +111,16 @@ class KidsPlayer:
     def find_library_match(self, title, year=None):
         torrents = self.rd.list_torrents() or []
         year_text = str(year) if year else ""
+        title_match = None
         for torrent in torrents:
             torrent_title = torrent.get("filename") or torrent.get("original_filename") or ""
-            if titles_match(title, torrent_title):
-                if year_text and year_text not in torrent_title:
-                    continue
+            if not titles_match(title, torrent_title):
+                continue
+            if year_text and year_text in torrent_title:
                 return torrent
-        return None
+            if title_match is None:
+                title_match = torrent
+        return title_match
 
     def _play_magnet_source(self, source, progress=None):
         if progress:
