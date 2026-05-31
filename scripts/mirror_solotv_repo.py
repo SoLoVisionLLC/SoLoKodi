@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import io
+import json
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -20,6 +21,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
+CONFIG = ROOT / "src" / "solotv_build" / "build.json"
 PUBLIC_SOLOTV_REPO = ROOT / "public" / "solotv" / "repo"
 UPSTREAM_ADDONS_XML = (
     "https://raw.githubusercontent.com/nebulous42069/Omega/main/omega/zips/addons.xml"
@@ -77,6 +79,17 @@ def rebrand_text(value: str) -> str:
     for pattern, replacement in TEXT_REPLACEMENTS:
         value = pattern.sub(replacement, value)
     return value
+
+
+def load_wizard_sources() -> dict[str, str]:
+    if not CONFIG.exists():
+        return {}
+    config = json.loads(CONFIG.read_text(encoding="utf-8"))
+    return {
+        key: str(value)
+        for key, value in (config.get("wizard_sources") or {}).items()
+        if value
+    }
 
 
 def load_upstream_addons_xml() -> ET.Element:
@@ -220,7 +233,29 @@ def patch_wizard_downloader_code(name: str, data: bytes) -> bytes:
     return data
 
 
-def patch_zip_contents(zip_bytes: bytes, addon_id: str) -> bytes:
+def patch_wizard_uservar_code(
+    name: str,
+    data: bytes,
+    wizard_sources: dict[str, str],
+) -> bytes:
+    if not wizard_sources or not name.lower().endswith("/uservar.py"):
+        return data
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError:
+        return data
+
+    for var_name, url in wizard_sources.items():
+        pattern = r"(?m)^(\s*{0}\s*=\s*).*$".format(re.escape(var_name))
+        text = re.sub(pattern, r"\g<1>'{0}'".format(url), text, count=1)
+    return text.encode("utf-8")
+
+
+def patch_zip_contents(
+    zip_bytes: bytes,
+    addon_id: str,
+    wizard_sources: dict[str, str],
+) -> bytes:
     input_buffer = io.BytesIO(zip_bytes)
     output_buffer = io.BytesIO()
     is_wizard = addon_id == "plugin.program.chef21"
@@ -233,6 +268,11 @@ def patch_zip_contents(zip_bytes: bytes, addon_id: str) -> bytes:
                 data = source.read(item.filename)
                 if is_wizard:
                     data = patch_wizard_downloader_code(item.filename, data)
+                    data = patch_wizard_uservar_code(
+                        item.filename,
+                        data,
+                        wizard_sources,
+                    )
                 if should_patch_zip_member(item.filename):
                     try:
                         text = data.decode("utf-8")
@@ -287,6 +327,7 @@ def write_addons_xml(root: ET.Element) -> None:
 def mirror_packages(
     catalog: list[tuple[str, str]],
     zip_index: dict[str, list[tuple[str, str]]],
+    wizard_sources: dict[str, str],
     skip_existing: bool = True,
 ) -> tuple[int, int, list[str]]:
     ok = 0
@@ -309,7 +350,7 @@ def mirror_packages(
         print(f"[{index}/{len(catalog)}] {addon_id}-{version}")
         try:
             raw = fetch_bytes(url)
-            patched = patch_zip_contents(raw, addon_id)
+            patched = patch_zip_contents(raw, addon_id, wizard_sources)
             out_path.write_bytes(patched)
             ok += 1
         except (HTTPError, URLError, TimeoutError, OSError) as exc:
@@ -345,9 +386,11 @@ def main() -> int:
 
     print("Indexing upstream ZIP paths...")
     zip_index = build_zip_index()
+    wizard_sources = load_wizard_sources()
     ok, total, failed = mirror_packages(
         catalog,
         zip_index,
+        wizard_sources,
         skip_existing=not args.force,
     )
     print(f"Mirrored {ok}/{total} packages to {PUBLIC_SOLOTV_REPO}")

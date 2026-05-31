@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import sys
 import zipfile
 from pathlib import Path
@@ -11,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 PUBLIC = ROOT / "public"
 REPO = PUBLIC / "repo"
+SOLOTV_REPO = PUBLIC / "solotv" / "repo"
+SOLOTV_CONFIG = SRC / "solotv_build" / "build.json"
 SECRET_MARKERS = ("auth_token=", "SOLOVISION_COOLIFY_API_TOKEN")
 
 
@@ -71,6 +74,44 @@ def verify_zips(root: ET.Element) -> None:
             fail(f"embedded build manifest {profile}.json is missing from setup add-on")
 
 
+def verify_solotv_wizard_package() -> None:
+    if not SOLOTV_CONFIG.exists() or not (SOLOTV_REPO / "addons.xml").exists():
+        return
+
+    config = json.loads(SOLOTV_CONFIG.read_text(encoding="utf-8"))
+    wizard_sources = config.get("wizard_sources") or {}
+    root = ET.parse(SOLOTV_REPO / "addons.xml").getroot()
+    wizard = next(
+        (
+            addon
+            for addon in root.findall("addon")
+            if addon.attrib.get("id") == "plugin.program.chef21"
+        ),
+        None,
+    )
+    if wizard is None:
+        fail("SoLoTV repo is missing plugin.program.chef21")
+
+    addon_id = wizard.attrib["id"]
+    version = wizard.attrib["version"]
+    zip_path = SOLOTV_REPO / addon_id / f"{addon_id}-{version}.zip"
+    if not zip_path.exists():
+        fail(f"Missing SoLoTV wizard zip: {zip_path}")
+
+    with zipfile.ZipFile(zip_path) as archive:
+        uservar = archive.read(f"{addon_id}/uservar.py").decode(
+            "utf-8", errors="replace"
+        )
+        for source_name, expected_url in wizard_sources.items():
+            if expected_url and expected_url not in uservar:
+                fail(
+                    "SoLoTV wizard uservar.py does not point "
+                    f"{source_name} at {expected_url}"
+                )
+        if "Buildtexts69/omegabuilds" in uservar:
+            fail("SoLoTV wizard uservar.py still points at the upstream Diggz build list")
+
+
 def verify_no_embedded_secrets() -> None:
     for path in ROOT.rglob("*"):
         if path.is_dir() or ".git" in path.parts or "__pycache__" in path.parts:
@@ -88,6 +129,7 @@ def verify_no_embedded_secrets() -> None:
 def main() -> int:
     root = verify_xml()
     verify_zips(root)
+    verify_solotv_wizard_package()
     verify_no_embedded_secrets()
     print("Repository verification passed")
     return 0
