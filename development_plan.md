@@ -49,9 +49,10 @@ update manifest.
 - [x] Bundled `plugin.program.chef21/uservar.py` repointed to SoLoVision URLs (build list/notify/videos/changelog); stale `.pyc` dropped
 - [x] Live wizard also repointed by setup add-on (`repoint_wizard_sources`, data-driven from `solotv.json`)
 - [x] Dockerfile builds the SoLoTV build at deploy (`SOLOTV_TARGETS`, default K21); zips gitignored
-- [x] Phase 2 (build v1.0.1) — 20 brand-image overrides (Diggz/Xenon/Chef logos, fanart, intro/spinner gifs, diggz* icons) swapped for SoLoTV art via `overrides/`, derived at exact dims from two masters; brand palette: navy `#1B2232`, red `#BC2026`, grey `#A9B2BC`, white `#FFFFFF`
-- [ ] Build K22 target + publish both in `builds.xml`
-- [ ] Optional: deep-rebrand the Xenon skin internals (home "DIGGZ XENON" wordmark if image-baked)
+- [x] Phase 2 (build v1.0.1) — 22 brand-image overrides (Diggz/Xenon/Chef logos, fanart, intro/spinner gifs, diggz* icons, Xenon icon) swapped for SoLoTV art via `overrides/`, derived at exact dims from two masters in `src/solotv_build/brand/` (`scripts/make_solotv_overrides.py`); brand palette: navy `#1B2232`, red `#BC2026`, grey `#A9B2BC`, white `#FFFFFF`
+- [x] Home wordmark fixed — active skin is `skin.aeon.tajo`; its `backgrounds/default_bg.jpg` had the baked-in "PLANET DIGGZ" art, now overridden with SoLoTV background
+- [x] Build + publish K21 **and** K22 in `builds.xml`; Dockerfile default `SOLOTV_TARGETS=` builds all targets at deploy
+- [ ] Optional: deep-rebrand the Xenon skin internals (compiled `Textures.xbt`) if any branding remains
 
 ### SoLoKodi Setup (v0.5.1) — SoLoTV install fix
 

@@ -37,6 +37,8 @@ PUBLIC_CARD = ROOT / "public" / "solotv" / "cards" / "solotv.png"
 # Branded backgrounds / fanart / gifs -> derived from the wide background master.
 BG_TARGETS = [
     ("addons/resource.images.skinbackgrounds.xenon/resources/Diggz/diggz.png", 1700, 956),
+    # Active skin (Aeon Tajo) home background — has the baked-in "PLANET DIGGZ" wordmark.
+    ("addons/skin.aeon.tajo/backgrounds/default_bg.jpg", 1700, 956),
     ("addons/plugin.program.chef21/resources/fanart.jpg", 1268, 664),
     ("addons/script.diggzskins/fanart.jpg", 1920, 1080),
     ("addons/script.diggzskins/resources/skins/Default/1080i/bg.jpg", 1920, 1080),
@@ -57,6 +59,7 @@ ICON_TARGETS = [
     ("addons/resource.images.skinicons.wide/resources/icons/diggztvguide.png", 828, 849),
     ("addons/resource.images.skinicons.wide/resources/icons/diggzsports.png", 225, 225),
     ("addons/resource.images.skinicons.wide/resources/icons/diggzwiki.png", 135, 135),
+    ("addons/resource.images.skinicons.wide/resources/icons/xenon.png", 487, 441),
     ("addons/resource.images.skinicons.wide/resources/icons/3d-logo-1.png", 550, 550),
     ("addons/script.diggzskins/icon.png", 287, 287),
     ("addons/plugin.program.diggzflavors/resources/icon.png", 287, 287),
@@ -90,7 +93,7 @@ def main() -> int:
 
     total = len(BG_TARGETS) + len(ICON_TARGETS)
     print(f"Wrote {total} override images + 2 cards from masters in {BRAND}")
-    print("Next: python scripts/build_solotv_build.py K21")
+    print("Next: python scripts/build_solotv_build.py   (all targets, refresh builds.xml)")
     return 0
 
 
