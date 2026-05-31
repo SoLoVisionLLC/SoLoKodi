@@ -137,8 +137,18 @@ def run():
     params = urllib.parse.parse_qs(sys.argv[2][1:])
     action = params.get("action", ["menu"])[0]
 
-    if action == "menu" and not build_config.has_active_profile():
-        builds.show_build_picker()
+    if action == "menu":
+        if not build_config.has_active_profile():
+            builds.show_build_picker()
+        if build_config.has_active_profile():
+            show_menu()
+        else:
+            add_item(
+                "Choose Your Build",
+                "pick_build",
+                "Pick a SoLoKodi build to install (Kids, SoLoTV, and more).",
+            )
+            xbmcplugin.endOfDirectory(HANDLE)
         return
 
     if action in ("wizard", "kids_setup"):

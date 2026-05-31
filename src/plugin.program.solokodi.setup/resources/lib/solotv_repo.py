@@ -55,17 +55,32 @@ def rebrand_installed_wizard(wizard_id=WIZARD_ADDON_ID):
 
 def install_streaming_repository(manifest=None):
     config = streaming_repo_config(manifest)
+    repo_id = config.get("repository_id")
+    if not repo_id:
+        xbmc.log("SoLoTV: streaming repository id is missing", xbmc.LOGERROR)
+        return False
+    if build_ops.addon_installed(repo_id):
+        return True
+
+    # Preferred path: repository.solotv ships inside the already-installed
+    # SoLoKodi repository, so install it directly. This avoids InstallZip and
+    # the "Unknown sources" prompt entirely.
+    build_ops.refresh_addon_repositories()
+    if build_ops.install_addon(repo_id) or build_ops.wait_for_addon(repo_id, timeout_ms=60000):
+        xbmc.log("SoLoTV: installed {0} from SoLoKodi repository".format(repo_id), xbmc.LOGINFO)
+        return True
+
+    # Fallback: install from the hosted repository zip / file source.
+    zip_name = config.get("repository_zip")
+    if not zip_name:
+        xbmc.log("SoLoTV: no repository zip fallback configured", xbmc.LOGERROR)
+        return False
     option = {
-        "repository_id": config.get("repository_id"),
+        "repository_id": repo_id,
         "repository_url": config.get("file_source_url"),
         "repository_name": config.get("file_source_name"),
-        "repository_zip": config.get("repository_zip"),
+        "repository_zip": zip_name,
     }
-    if not option["repository_id"] or not option["repository_zip"]:
-        xbmc.log("SoLoTV: streaming repository settings are incomplete", xbmc.LOGERROR)
-        return False
-    if build_ops.addon_installed(option["repository_id"]):
-        return True
     return build_ops.install_repository_from_zip(option)
 
 

@@ -41,6 +41,13 @@ update manifest.
 - [x] v0.2.1 — remove `IsPlayable` on plugin action items (fixes “skipping unplayable item” on Discover)
 - [x] v0.2.3 — Modern Kids TV browse (2015+), IMDB TV search, relaxed torrent matching
 
+### SoLoKodi Setup (v0.5.1) — SoLoTV install fix
+
+- [x] Install `repository.solotv` via `InstallAddon` from the installed SoLoKodi repo
+      (was failing on `InstallZip` from a file source — required "Unknown sources")
+- [x] Hosted-zip install kept as a fallback only
+- [x] First-run build picker renders a proper plugin directory (no `GetDirectory` error)
+
 ### SoLoKodi Setup (v0.5.0) — Build chooser & maintenance
 
 - [x] Visual **build chooser** (rich `useDetails` cards w/ art, version, tagline) — no Kids default
