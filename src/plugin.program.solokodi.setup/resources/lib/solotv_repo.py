@@ -53,6 +53,54 @@ def rebrand_installed_wizard(wizard_id=WIZARD_ADDON_ID):
     return True
 
 
+def repoint_wizard_sources(manifest=None, wizard_id=WIZARD_ADDON_ID):
+    """Point the installed Build Wizard at SoLoVision-hosted build sources.
+
+    Rewrites the wizard's uservar.py so it reads our build list, notifications,
+    videos, and changelog instead of the upstream Diggz endpoints.
+    """
+    config = streaming_repo_config(manifest)
+    overrides = {
+        "buildfile": config.get("build_list_url"),
+        "notify_url": config.get("notify_url"),
+        "videos_url": config.get("videos_url"),
+        "changelog_dir": config.get("changelog_dir"),
+    }
+    overrides = {key: value for key, value in overrides.items() if value}
+    if not overrides:
+        return False
+    if not build_ops.addon_installed(wizard_id):
+        return False
+
+    uservar_path = xbmcvfs.translatePath(
+        "special://home/addons/{0}/uservar.py".format(wizard_id)
+    )
+    if not xbmcvfs.exists(uservar_path):
+        return False
+
+    with xbmcvfs.File(uservar_path) as handle:
+        content = handle.read()
+
+    updated = content
+    for var_name, url in overrides.items():
+        pattern = r"(?m)^(\s*{0}\s*=\s*).*$".format(re.escape(var_name))
+        replacement = r"\g<1>'{0}'".format(url)
+        updated, count = re.subn(pattern, replacement, updated, count=1)
+        if count == 0:
+            xbmc.log(
+                "SoLoTV: could not repoint wizard var {0}".format(var_name),
+                xbmc.LOGWARNING,
+            )
+
+    if updated == content:
+        return True
+
+    with xbmcvfs.File(uservar_path, "w") as handle:
+        handle.write(updated)
+    xbmc.log("SoLoTV: repointed Build Wizard sources to SoLoVision", xbmc.LOGINFO)
+    return True
+
+
 def install_streaming_repository(manifest=None):
     config = streaming_repo_config(manifest)
     repo_id = config.get("repository_id")
@@ -94,9 +142,11 @@ def install_build_wizard(manifest=None):
     build_ops.refresh_addon_repositories()
     if build_ops.install_addon(wizard_id):
         rebrand_installed_wizard(wizard_id)
+        repoint_wizard_sources(manifest, wizard_id)
         return True
     if build_ops.wait_for_addon(wizard_id, timeout_ms=90000):
         rebrand_installed_wizard(wizard_id)
+        repoint_wizard_sources(manifest, wizard_id)
         return True
     return False
 
@@ -107,5 +157,6 @@ def launch_build_wizard(manifest=None):
     if not wizard_id or not build_ops.addon_installed(wizard_id):
         return False
     rebrand_installed_wizard(wizard_id)
+    repoint_wizard_sources(manifest, wizard_id)
     xbmc.executebuiltin("RunAddon({0})".format(wizard_id))
     return True

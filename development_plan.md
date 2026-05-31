@@ -41,6 +41,18 @@ update manifest.
 - [x] v0.2.1 — remove `IsPlayable` on plugin action items (fixes “skipping unplayable item” on Discover)
 - [x] v0.2.3 — Modern Kids TV browse (2015+), IMDB TV search, relaxed torrent matching
 
+### SoLoTV custom build (v0.5.2) — own the build, drop Diggz AIO
+
+- [x] `scripts/build_solotv_build.py` — seed from Diggz foundation, rebrand, repackage
+- [x] `src/solotv_build/build.json` config + `overrides/` for image/branding swaps
+- [x] Self-hosted build list `public/solotv/builds.xml` (our "SoLoTV 4K" build)
+- [x] Bundled `plugin.program.chef21/uservar.py` repointed to SoLoVision URLs (build list/notify/videos/changelog); stale `.pyc` dropped
+- [x] Live wizard also repointed by setup add-on (`repoint_wizard_sources`, data-driven from `solotv.json`)
+- [x] Dockerfile builds the SoLoTV build at deploy (`SOLOTV_TARGETS`, default K21); zips gitignored
+- [ ] Phase 2 — replace branded images (Diggz/Xenon logos, intro gif, icons) via `overrides/`
+- [ ] Build K22 target + publish both in `builds.xml`
+- [ ] Optional: deep-rebrand the Xenon skin internals
+
 ### SoLoKodi Setup (v0.5.1) — SoLoTV install fix
 
 - [x] Install `repository.solotv` via `InstallAddon` from the installed SoLoKodi repo
@@ -83,5 +95,5 @@ update manifest.
 | Profile | Status | Manifest |
 |---------|--------|----------|
 | **Kids** | v1.3.1 | `/builds/kids/manifest.json` |
-| **SoLoTV** | v1.0.3 | `/builds/solotv/manifest.json` |
+| **SoLoTV** | v1.0.4 | `/builds/solotv/manifest.json` |
 | Sports | Planned | `/builds/sports/manifest.json` |

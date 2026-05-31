@@ -1,0 +1,32 @@
+{
+  "id": "solotv",
+  "name": "SoLoTV 4K",
+  "version": "1.0.0",
+  "description": "SoLoTV 4K — movies, TV, live channels, and Real-Debrid-ready add-ons. Built and maintained by SoLoVision.",
+  "icon": "https://solokodi.sololink.cloud/solotv/cards/solotv.png",
+  "fanart": "https://solokodi.sololink.cloud/solotv/cards/solotv.png",
+  "base_url": "https://solokodi.sololink.cloud/solotv/builds/",
+  "foundation_note": "Seeded from the upstream Diggz AIO build, then rebranded (text + image overrides) and maintained by SoLoVision.",
+  "wizard_sources": {
+    "buildfile": "https://solokodi.sololink.cloud/solotv/builds.xml",
+    "videos_url": "https://solokodi.sololink.cloud/solotv/videos.txt",
+    "notify_url": "https://solokodi.sololink.cloud/solotv/notify.txt",
+    "changelog_dir": "https://solokodi.sololink.cloud/solotv/"
+  },
+  "sources": [
+    {
+      "kodi": "K21",
+      "urls": [
+        "https://diggz1.me/Builds/21_AIO_v3_530_7am.zip",
+        "https://archive.org/download/21-aio-v-3-530-7am/21_AIO_v3_530_7am.zip"
+      ]
+    },
+    {
+      "kodi": "K22",
+      "urls": [
+        "https://diggz1.me/Builds/22_AIO_v3_530_7am.zip",
+        "https://archive.org/download/22-aio-v-3-530-7am/22_AIO_v3_530_7am.zip"
+      ]
+    }
+  ]
+}

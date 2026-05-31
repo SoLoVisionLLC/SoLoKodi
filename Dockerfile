@@ -14,6 +14,12 @@ COPY public ./public
 RUN python3 scripts/build_repo.py \
     && python3 scripts/verify_repo.py
 
+# Build the rebranded SoLoTV build(s) from the Diggz foundation and publish our
+# own build list. SOLOTV_TARGETS picks the Kodi target(s); leave empty to build
+# every target in src/solotv_build/build.json (downloads ~166MB each).
+ARG SOLOTV_TARGETS=K21
+RUN python3 scripts/build_solotv_build.py ${SOLOTV_TARGETS}
+
 FROM nginx:1.27-alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf

@@ -1,0 +1,2 @@
+SoLoTV 4K v1.0.0
+- SoLoVision-branded build, maintained in the SoLoKodi repo.

@@ -7,7 +7,7 @@
     "description": "SoLo-branded streaming build \u2014 movies, TV, live channels, and Real-Debrid-ready add-ons via the SoLoTV repository.",
     "id": "solotv",
     "name": "SoLoTV",
-    "version": "1.0.3"
+    "version": "1.0.4"
   },
   "build_type": "streaming",
   "card_image": "solotv.png",
@@ -22,7 +22,7 @@
       "name": "SoLoTV Build Wizard"
     }
   ],
-  "generated_at": "2026-05-31T13:18:34Z",
+  "generated_at": "2026-05-31T13:54:23Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/solotv/manifest.json",
   "repository": {
     "id": "repository.solokodi",
@@ -35,7 +35,7 @@
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Setup",
-    "version": "0.5.1"
+    "version": "0.5.2"
   },
   "setup_favourite": "SoLoTV Setup",
   "skin": {
@@ -50,11 +50,15 @@
   },
   "solokodi_addons": [],
   "streaming_repo": {
+    "build_list_url": "https://solokodi.sololink.cloud/solotv/builds.xml",
+    "changelog_dir": "https://solokodi.sololink.cloud/solotv/",
     "file_source_name": "solotv",
     "file_source_url": "https://solokodi.sololink.cloud/solotv/",
-    "recommended_build_hint": "In the SoLoTV wizard, choose Xenon 4K (Debrid) or Xenon 4K Free for the full interface.",
+    "notify_url": "https://solokodi.sololink.cloud/solotv/notify.txt",
+    "recommended_build_hint": "In the SoLoTV wizard, choose the SoLoTV 4K build for the full interface.",
     "repository_id": "repository.solotv",
     "repository_zip": "repository.solotv-1.0.1.zip",
+    "videos_url": "https://solokodi.sololink.cloud/solotv/videos.txt",
     "wizard_addon_id": "plugin.program.chef21",
     "wizard_label": "SoLoTV Build Wizard"
   },

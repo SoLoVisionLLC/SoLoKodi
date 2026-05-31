@@ -7,3 +7,4 @@ __pycache__
 # Generated at docker build (see Dockerfile); keep context small
 public/solotv/repo/*/
 public/repo/*/
+public/solotv/builds/*.zip
