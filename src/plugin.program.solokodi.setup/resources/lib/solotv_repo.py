@@ -7,6 +7,113 @@ from . import build_config, build_ops
 
 WIZARD_ADDON_ID = "plugin.program.chef21"
 WIZARD_DOWNLOADER_REL = "resources/lib/modules/downloader.py"
+WIZARD_BUILD_INSTALL_REL = "resources/lib/modules/build_install.py"
+
+PATCHED_WIZARD_DOWNLOADER = r'''import os
+import sys
+import zipfile
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+import xbmc
+import xbmcgui
+import xbmcaddon
+
+ADDON = xbmcaddon.Addon()
+ADDON_NAME = ADDON.getAddonInfo('name')
+ICON = ADDON.getAddonInfo('icon')
+
+class Downloader:
+    def __init__(self, url):
+        self.url = url
+        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        self.headers = {
+            "User-Agent": self.user_agent,
+            "Accept": "*/*",
+            "Accept-Encoding": "identity",
+            "Referer": "https://github.com/",
+            "Connection": "close",
+        }
+
+    def _open(self):
+        request = Request(self.url, headers=self.headers)
+        return urlopen(request, timeout=120)
+
+    def get_length(self, response):
+        length = response.headers.get('Content-Length')
+        return int(length) if length else None
+
+    def download_build(self, name, zippath):
+        dp = xbmcgui.DialogProgress()
+        cancelled = False
+        chunksize = 1000000
+        size = 0
+
+        try:
+            response = self._open()
+        except (HTTPError, URLError, OSError) as exc:
+            xbmcgui.Dialog().ok(ADDON_NAME, 'Download failed: {0}'.format(exc))
+            raise
+
+        with response:
+            length = self.get_length(response)
+            if length is not None:
+                length2 = int(length / 1000000)
+                dp.create(f'{name} - {length2}MB', 'Downloading your build...')
+            else:
+                length2 = 'Unknown Size'
+                dp.create(f'{name} - {length2}', 'Downloading your build...')
+
+            dp.update(0, 'Downloading your build...')
+            with open(zippath, 'wb') as f:
+                while True:
+                    chunk = response.read(chunksize)
+                    if not chunk:
+                        break
+                    size += len(chunk)
+                    size2 = int(size / 1000000)
+                    f.write(chunk)
+                    if length:
+                        perc = int(size / length * 100)
+                        dp.update(perc, f'Downloading your build...\n{size2}/{length2} MB')
+                    else:
+                        dp.update(50, f'Downloading your build...\n{size2} MB')
+                    if dp.iscanceled():
+                        cancelled = True
+                        break
+
+        if cancelled is True:
+            dp.close()
+            if os.path.exists(zippath):
+                os.unlink(zippath)
+            dialog = xbmcgui.Dialog()
+            dialog.notification(ADDON_NAME, 'Download Cancelled', icon=ICON)
+            sys.exit()
+
+        if length is not None and size != length:
+            dp.close()
+            if os.path.exists(zippath):
+                os.unlink(zippath)
+            xbmcgui.Dialog().ok(
+                ADDON_NAME,
+                'Download incomplete: {0}/{1} bytes'.format(size, length),
+            )
+            raise IOError('Downloaded build was incomplete')
+
+        if not zipfile.is_zipfile(zippath):
+            dp.close()
+            if os.path.exists(zippath):
+                os.unlink(zippath)
+            xbmcgui.Dialog().ok(ADDON_NAME, 'Downloaded build is not a valid ZIP file.')
+            raise zipfile.BadZipFile('Downloaded build is not a valid ZIP file')
+
+        if length is not None:
+            dp.update(100, f'Downloading your build...Done!\n{int(size/1000000)}/{length2} MB')
+        else:
+            dp.update(100, f'Downloading your build...Done!\n{int(size/1000000)} MB')
+
+        xbmc.sleep(500)
+        dp.close()
+'''
 
 
 def streaming_repo_config(manifest=None):
@@ -103,15 +210,7 @@ def repoint_wizard_sources(manifest=None, wizard_id=WIZARD_ADDON_ID):
 
 
 def patch_wizard_downloader(wizard_id=WIZARD_ADDON_ID):
-    """Make the wizard's build downloader robust to missing Content-Length.
-
-    Upstream chef21 falls back to ``response.read(chunksize)`` when the HTTP
-    response has no Content-Length header, but a ``requests.Response`` has no
-    ``read`` method, so the install crashes with AttributeError. This happens on
-    CDN cache misses that stream the zip with chunked transfer-encoding.
-    ``response.raw.read`` is the underlying urllib3 reader and works whether or
-    not Content-Length is present.
-    """
+    """Make the wizard's build downloader independent of requests and proxies."""
     if not build_ops.addon_installed(wizard_id):
         return False
     path = xbmcvfs.translatePath(
@@ -123,15 +222,52 @@ def patch_wizard_downloader(wizard_id=WIZARD_ADDON_ID):
     with xbmcvfs.File(path) as handle:
         content = handle.read()
 
-    if "response.read(" not in content:
+    if content == PATCHED_WIZARD_DOWNLOADER:
         return True
-    updated = content.replace("response.read(", "response.raw.read(")
+
+    with xbmcvfs.File(path, "w") as handle:
+        handle.write(PATCHED_WIZARD_DOWNLOADER)
+    xbmc.log("SoLoTV: patched Build Wizard downloader", xbmc.LOGINFO)
+    return True
+
+
+def patch_wizard_build_install(wizard_id=WIZARD_ADDON_ID):
+    """Validate the downloaded ZIP before the wizard clears the Kodi profile."""
+    if not build_ops.addon_installed(wizard_id):
+        return False
+    path = xbmcvfs.translatePath(
+        "special://home/addons/{0}/{1}".format(wizard_id, WIZARD_BUILD_INSTALL_REL)
+    )
+    if not xbmcvfs.exists(path):
+        return False
+
+    with xbmcvfs.File(path) as handle:
+        content = handle.read()
+
+    updated = content.replace(
+        "from zipfile import ZipFile",
+        "from zipfile import ZipFile, is_zipfile",
+        1,
+    )
+    marker = "    download_build(name, url)\n    save_backup_restore('backup')"
+    replacement = (
+        "    download_build(name, url)\n"
+        "    if not is_zipfile(zippath):\n"
+        "        if os.path.exists(zippath):\n"
+        "            os.unlink(zippath)\n"
+        "        dialog.ok(addon_name, 'Downloaded build is not a valid ZIP file.')\n"
+        "        return\n"
+        "    save_backup_restore('backup')"
+    )
+    if marker in updated and "if not is_zipfile(zippath):" not in updated:
+        updated = updated.replace(marker, replacement, 1)
+
     if updated == content:
         return True
 
     with xbmcvfs.File(path, "w") as handle:
         handle.write(updated)
-    xbmc.log("SoLoTV: patched Build Wizard downloader (chunked-safe)", xbmc.LOGINFO)
+    xbmc.log("SoLoTV: patched Build Wizard install validation", xbmc.LOGINFO)
     return True
 
 
@@ -178,11 +314,13 @@ def install_build_wizard(manifest=None):
         rebrand_installed_wizard(wizard_id)
         repoint_wizard_sources(manifest, wizard_id)
         patch_wizard_downloader(wizard_id)
+        patch_wizard_build_install(wizard_id)
         return True
     if build_ops.wait_for_addon(wizard_id, timeout_ms=90000):
         rebrand_installed_wizard(wizard_id)
         repoint_wizard_sources(manifest, wizard_id)
         patch_wizard_downloader(wizard_id)
+        patch_wizard_build_install(wizard_id)
         return True
     return False
 
@@ -195,5 +333,6 @@ def launch_build_wizard(manifest=None):
     rebrand_installed_wizard(wizard_id)
     repoint_wizard_sources(manifest, wizard_id)
     patch_wizard_downloader(wizard_id)
+    patch_wizard_build_install(wizard_id)
     xbmc.executebuiltin("RunAddon({0})".format(wizard_id))
     return True

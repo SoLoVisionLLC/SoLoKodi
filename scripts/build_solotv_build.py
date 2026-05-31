@@ -26,10 +26,18 @@ from urllib.request import urlopen
 
 WIZARD_USERVAR = "addons/plugin.program.chef21/uservar.py"
 WIZARD_DOWNLOADER = "addons/plugin.program.chef21/resources/lib/modules/downloader.py"
+WIZARD_BUILD_INSTALL = (
+    "addons/plugin.program.chef21/resources/lib/modules/build_install.py"
+)
 
 # Reuse the branding rules already used to rebrand the SoLoTV catalog.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from mirror_solotv_repo import TEXT_REPLACEMENTS, PATCH_INSIDE_ZIP_SUFFIXES  # noqa: E402
+from mirror_solotv_repo import (  # noqa: E402
+    PATCHED_WIZARD_DOWNLOADER,
+    PATCH_INSIDE_ZIP_SUFFIXES,
+    TEXT_REPLACEMENTS,
+    patch_wizard_build_install_code,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "src" / "solotv_build" / "build.json"
@@ -129,7 +137,11 @@ def _skip_member(name: str) -> bool:
     lower = name.lower()
     if "plugin.program.chef21" not in lower or not lower.endswith(".pyc"):
         return False
-    return "uservar" in lower or "modules/downloader" in lower
+    return (
+        "uservar" in lower
+        or "modules/downloader" in lower
+        or "modules/build_install" in lower
+    )
 
 
 def load_overrides() -> dict[str, bytes]:
@@ -196,9 +208,9 @@ def process_source(
             elif rel == WIZARD_USERVAR:
                 data = repoint_uservar(rebrand_bytes(rel, data), wizard_sources)
             elif rel == WIZARD_DOWNLOADER:
-                # Make the build downloader robust to missing Content-Length
-                # (CDN cache-miss streams use chunked transfer-encoding).
-                data = data.replace(b"response.read(", b"response.raw.read(")
+                data = PATCHED_WIZARD_DOWNLOADER.encode("utf-8")
+            elif rel == WIZARD_BUILD_INSTALL:
+                data = patch_wizard_build_install_code(rel, data)
             else:
                 data = rebrand_bytes(rel, data)
             zout.writestr(item, data)

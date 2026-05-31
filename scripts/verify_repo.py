@@ -99,9 +99,19 @@ def verify_solotv_wizard_package() -> None:
         fail(f"Missing SoLoTV wizard zip: {zip_path}")
 
     with zipfile.ZipFile(zip_path) as archive:
+        names = archive.namelist()
         uservar = archive.read(f"{addon_id}/uservar.py").decode(
             "utf-8", errors="replace"
         )
+        addon_xml = archive.read(f"{addon_id}/addon.xml").decode(
+            "utf-8", errors="replace"
+        )
+        downloader = archive.read(
+            f"{addon_id}/resources/lib/modules/downloader.py"
+        ).decode("utf-8", errors="replace")
+        build_install = archive.read(
+            f"{addon_id}/resources/lib/modules/build_install.py"
+        ).decode("utf-8", errors="replace")
         for source_name, expected_url in wizard_sources.items():
             if expected_url and expected_url not in uservar:
                 fail(
@@ -110,6 +120,46 @@ def verify_solotv_wizard_package() -> None:
                 )
         if "Buildtexts69/omegabuilds" in uservar:
             fail("SoLoTV wizard uservar.py still points at the upstream Diggz build list")
+        if "script.module.requests" in addon_xml:
+            fail("SoLoTV wizard still declares an unnecessary requests dependency")
+        try:
+            internal_addon = ET.fromstring(addon_xml)
+        except ET.ParseError as exc:
+            fail(f"SoLoTV wizard addon.xml is not valid XML: {exc}")
+        if internal_addon.attrib.get("version") != version:
+            fail(
+                "SoLoTV wizard zip addon.xml version "
+                f"{internal_addon.attrib.get('version')} does not match catalog {version}"
+            )
+        if "import requests" in downloader:
+            fail("SoLoTV wizard downloader still imports requests")
+        if "response.raw.read" in downloader or "response.iter_content" in downloader:
+            fail("SoLoTV wizard downloader still uses requests response streaming")
+        if '"Accept-Encoding": "identity"' not in downloader:
+            fail("SoLoTV wizard downloader does not request identity encoding")
+        if "zipfile.is_zipfile" not in downloader:
+            fail("SoLoTV wizard downloader does not validate the downloaded ZIP")
+        if "from zipfile import ZipFile, is_zipfile" not in build_install:
+            fail("SoLoTV wizard build installer does not import is_zipfile")
+        if build_install.find("if not is_zipfile(zippath):") == -1:
+            fail("SoLoTV wizard build installer does not validate before fresh_start")
+        if (
+            build_install.find("if not is_zipfile(zippath):")
+            > build_install.find("fresh_start()")
+        ):
+            fail("SoLoTV wizard validates the ZIP after fresh_start instead of before")
+        stale_pyc = [
+            name
+            for name in names
+            if name.endswith(".pyc")
+            and (
+                "modules/downloader" in name
+                or "modules/build_install" in name
+                or "uservar" in name
+            )
+        ]
+        if stale_pyc:
+            fail(f"SoLoTV wizard contains stale patched-module bytecode: {stale_pyc[0]}")
 
 
 def verify_no_embedded_secrets() -> None:

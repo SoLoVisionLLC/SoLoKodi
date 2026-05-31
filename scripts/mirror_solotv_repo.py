@@ -23,6 +23,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "src" / "solotv_build" / "build.json"
 PUBLIC_SOLOTV_REPO = ROOT / "public" / "solotv" / "repo"
+SOLOTV_WIZARD_VERSION = "502.1"
 UPSTREAM_ADDONS_XML = (
     "https://raw.githubusercontent.com/nebulous42069/Omega/main/omega/zips/addons.xml"
 )
@@ -64,6 +65,113 @@ PATCH_INSIDE_ZIP_SUFFIXES = (
     ".po",
 )
 PATCH_INSIDE_ZIP_NAMES = ("addon.xml",)
+
+PATCHED_WIZARD_DOWNLOADER = r'''import os
+import sys
+import zipfile
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+import xbmc
+import xbmcgui
+import xbmcaddon
+
+ADDON = xbmcaddon.Addon()
+ADDON_NAME = ADDON.getAddonInfo('name')
+ICON = ADDON.getAddonInfo('icon')
+
+class Downloader:
+    def __init__(self, url):
+        self.url = url
+        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        self.headers = {
+            "User-Agent": self.user_agent,
+            "Accept": "*/*",
+            "Accept-Encoding": "identity",
+            "Referer": "https://github.com/",
+            "Connection": "close",
+        }
+
+    def _open(self):
+        request = Request(self.url, headers=self.headers)
+        return urlopen(request, timeout=120)
+
+    def get_length(self, response):
+        length = response.headers.get('Content-Length')
+        return int(length) if length else None
+
+    def download_build(self, name, zippath):
+        dp = xbmcgui.DialogProgress()
+        cancelled = False
+        chunksize = 1000000
+        size = 0
+        length = None
+
+        try:
+            response = self._open()
+        except (HTTPError, URLError, OSError) as exc:
+            xbmcgui.Dialog().ok(ADDON_NAME, 'Download failed: {0}'.format(exc))
+            raise
+
+        with response:
+            length = self.get_length(response)
+            if length is not None:
+                length2 = int(length / 1000000)
+                dp.create(f'{name} - {length2}MB', 'Downloading your build...')
+            else:
+                length2 = 'Unknown Size'
+                dp.create(f'{name} - {length2}', 'Downloading your build...')
+
+            dp.update(0, 'Downloading your build...')
+            with open(zippath, 'wb') as f:
+                while True:
+                    chunk = response.read(chunksize)
+                    if not chunk:
+                        break
+                    size += len(chunk)
+                    size2 = int(size / 1000000)
+                    f.write(chunk)
+                    if length:
+                        perc = int(size / length * 100)
+                        dp.update(perc, f'Downloading your build...\n{size2}/{length2} MB')
+                    else:
+                        dp.update(50, f'Downloading your build...\n{size2} MB')
+                    if dp.iscanceled():
+                        cancelled = True
+                        break
+
+        if cancelled is True:
+            dp.close()
+            if os.path.exists(zippath):
+                os.unlink(zippath)
+            dialog = xbmcgui.Dialog()
+            dialog.notification(ADDON_NAME, 'Download Cancelled', icon=ICON)
+            sys.exit()
+
+        if length is not None and size != length:
+            dp.close()
+            if os.path.exists(zippath):
+                os.unlink(zippath)
+            xbmcgui.Dialog().ok(
+                ADDON_NAME,
+                'Download incomplete: {0}/{1} bytes'.format(size, length),
+            )
+            raise IOError('Downloaded build was incomplete')
+
+        if not zipfile.is_zipfile(zippath):
+            dp.close()
+            if os.path.exists(zippath):
+                os.unlink(zippath)
+            xbmcgui.Dialog().ok(ADDON_NAME, 'Downloaded build is not a valid ZIP file.')
+            raise zipfile.BadZipFile('Downloaded build is not a valid ZIP file')
+
+        if length is not None:
+            dp.update(100, f'Downloading your build...Done!\n{int(size/1000000)}/{length2} MB')
+        else:
+            dp.update(100, f'Downloading your build...Done!\n{int(size/1000000)} MB')
+
+        xbmc.sleep(500)
+        dp.close()
+'''
 
 
 def fetch_bytes(url: str, timeout: int = 180) -> bytes:
@@ -181,6 +289,18 @@ def rebrand_addon_xml_content(content: str, addon_id: str) -> str:
             content,
             count=1,
         )
+        content = re.sub(
+            r'(<addon\b[^>]*\sversion=")[^"]*(")',
+            r'\g<1>{0}\2'.format(SOLOTV_WIZARD_VERSION),
+            content,
+            count=1,
+        )
+        content = re.sub(
+            r"\s*<import\s+addon=\"script\.module\.requests\"[^>]*/>\s*",
+            "\n",
+            content,
+            flags=re.I,
+        )
     content = re.sub(
         r'provider-name="Diggz"',
         'provider-name="SoLoVision"',
@@ -215,22 +335,49 @@ def should_patch_zip_member(name: str) -> bool:
     return any(part in lower for part in PATCH_INSIDE_ZIP_NAMES)
 
 
-def _is_downloader_bytecode(name: str) -> bool:
+def _is_stale_wizard_bytecode(name: str) -> bool:
     lower = name.lower()
-    return "modules/downloader" in lower and lower.endswith(".pyc")
+    if not lower.endswith(".pyc"):
+        return False
+    return (
+        "modules/downloader" in lower
+        or "modules/build_install" in lower
+        or "uservar" in lower
+    )
 
 
 def patch_wizard_downloader_code(name: str, data: bytes) -> bytes:
-    """Make chef21's build downloader robust to missing Content-Length.
-
-    Upstream falls back to ``response.read(chunksize)`` when the response has no
-    Content-Length, but a ``requests.Response`` has no ``read`` (it crashes on
-    CDN cache misses that stream with chunked transfer-encoding).
-    ``response.raw.read`` is the urllib3 reader and works in both cases.
-    """
     if name.lower().endswith("modules/downloader.py"):
-        return data.replace(b"response.read(", b"response.raw.read(")
+        return PATCHED_WIZARD_DOWNLOADER.encode("utf-8")
     return data
+
+
+def patch_wizard_build_install_code(name: str, data: bytes) -> bytes:
+    if not name.lower().endswith("modules/build_install.py"):
+        return data
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError:
+        return data
+
+    text = text.replace(
+        "from zipfile import ZipFile",
+        "from zipfile import ZipFile, is_zipfile",
+        1,
+    )
+    marker = "    download_build(name, url)\n    save_backup_restore('backup')"
+    replacement = (
+        "    download_build(name, url)\n"
+        "    if not is_zipfile(zippath):\n"
+        "        if os.path.exists(zippath):\n"
+        "            os.unlink(zippath)\n"
+        "        dialog.ok(addon_name, 'Downloaded build is not a valid ZIP file.')\n"
+        "        return\n"
+        "    save_backup_restore('backup')"
+    )
+    if marker in text and "if not is_zipfile(zippath):" not in text:
+        text = text.replace(marker, replacement, 1)
+    return text.encode("utf-8")
 
 
 def patch_wizard_uservar_code(
@@ -262,12 +409,13 @@ def patch_zip_contents(
     with zipfile.ZipFile(input_buffer, "r") as source:
         with zipfile.ZipFile(output_buffer, "w", zipfile.ZIP_DEFLATED) as target:
             for item in source.infolist():
-                # Drop stale downloader bytecode so our patched .py is used.
-                if is_wizard and _is_downloader_bytecode(item.filename):
+                # Drop stale bytecode so our patched Python sources are used.
+                if is_wizard and _is_stale_wizard_bytecode(item.filename):
                     continue
                 data = source.read(item.filename)
                 if is_wizard:
                     data = patch_wizard_downloader_code(item.filename, data)
+                    data = patch_wizard_build_install_code(item.filename, data)
                     data = patch_wizard_uservar_code(
                         item.filename,
                         data,
@@ -311,6 +459,12 @@ def rebrand_catalog_xml(root: ET.Element) -> ET.Element:
         if addon.get("id") == "plugin.program.chef21":
             addon.set("name", "SoLoTV Build Wizard")
             addon.set("provider-name", "SoLoVision")
+            addon.set("version", SOLOTV_WIZARD_VERSION)
+            requires = addon.find("requires")
+            if requires is not None:
+                for child in list(requires):
+                    if child.attrib.get("addon") == "script.module.requests":
+                        requires.remove(child)
 
     return root
 
@@ -340,7 +494,10 @@ def mirror_packages(
 
         out_dir = PUBLIC_SOLOTV_REPO / addon_id
         out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / f"{addon_id}-{version}.zip"
+        package_version = (
+            SOLOTV_WIZARD_VERSION if addon_id == "plugin.program.chef21" else version
+        )
+        out_path = out_dir / f"{addon_id}-{package_version}.zip"
         if skip_existing and out_path.exists() and out_path.stat().st_size > 1000:
             ok += 1
             print(f"[{index}/{len(catalog)}] skip {out_path.name}")

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.5.2" provider-name="SoLoVision">
+<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.5.4" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -14,6 +14,7 @@
     <platform>all</platform>
     <license>MIT</license>
     <website>https://solokodi.sololink.cloud</website>
+    <news>v0.5.4 - Fix SoLoTV Build Wizard downloads served with transfer compression; validate the ZIP before clearing Kodi data.</news>
   </extension>
 </addon>
 <addon id="plugin.video.solokodi.kidsrd" name="SoLoKodi Kids Real-Debrid" version="0.2.3" provider-name="SoLoVision">

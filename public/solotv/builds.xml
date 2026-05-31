@@ -2,9 +2,9 @@
 
 <build>
 <name>SoLoTV 4K</name>
-<version>1.0.2</version>
+<version>1.0.4</version>
 <kodi>K21</kodi>
-<url>https://solokodi.sololink.cloud/solotv/builds/solotv-1.0.2-K21.zip</url>
+<url>https://solokodi.sololink.cloud/solotv/builds/solotv-1.0.4-K21.zip</url>
 <icon>https://solokodi.sololink.cloud/solotv/cards/solotv.png</icon>
 <fanart>https://solokodi.sololink.cloud/solotv/cards/solotv.png</fanart>
 <description>SoLoTV 4K — movies, TV, live channels, and Real-Debrid-ready add-ons. Built and maintained by SoLoVision.</description>
@@ -12,9 +12,9 @@
 
 <build>
 <name>SoLoTV 4K</name>
-<version>1.0.2</version>
+<version>1.0.4</version>
 <kodi>K22</kodi>
-<url>https://solokodi.sololink.cloud/solotv/builds/solotv-1.0.2-K22.zip</url>
+<url>https://solokodi.sololink.cloud/solotv/builds/solotv-1.0.4-K22.zip</url>
 <icon>https://solokodi.sololink.cloud/solotv/cards/solotv.png</icon>
 <fanart>https://solokodi.sololink.cloud/solotv/cards/solotv.png</fanart>
 <description>SoLoTV 4K — movies, TV, live channels, and Real-Debrid-ready add-ons. Built and maintained by SoLoVision.</description>
