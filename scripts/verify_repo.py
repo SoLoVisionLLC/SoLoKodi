@@ -49,9 +49,10 @@ def verify_zips(root: ET.Element) -> None:
             if expected not in archive.namelist():
                 fail(f"{zip_path} does not contain {expected}")
             if addon_id == "plugin.program.solokodi.setup":
-                manifest_entry = f"{addon_id}/resources/builds/kids.json"
-                if manifest_entry not in archive.namelist():
-                    fail(f"{zip_path} does not contain embedded build manifest {manifest_entry}")
+                for profile in ("kids", "solotv"):
+                    manifest_entry = f"{addon_id}/resources/builds/{profile}.json"
+                    if manifest_entry not in archive.namelist():
+                        fail(f"{zip_path} does not contain embedded build manifest {manifest_entry}")
     repo_addon = next(addon for addon in root.findall("addon") if addon.attrib["id"] == "repository.solokodi")
     repo_version = repo_addon.attrib["version"]
     public_repo_zip = ROOT / "public" / "solokodi" / f"repository.solokodi-{repo_version}.zip"
@@ -61,12 +62,13 @@ def verify_zips(root: ET.Element) -> None:
     if legacy_root_zip.exists():
         fail("legacy root-level repository ZIP should redirect, not exist as a file")
 
-    manifest_path = PUBLIC / "builds" / "kids" / "manifest.json"
-    if not manifest_path.exists():
-        fail("public/builds/kids/manifest.json is missing — run build_repo.py")
-    embedded_manifest = SRC / "plugin.program.solokodi.setup" / "resources" / "builds" / "kids.json"
-    if not embedded_manifest.exists():
-        fail("embedded build manifest is missing from setup add-on resources")
+    for profile in ("kids", "solotv"):
+        manifest_path = PUBLIC / "builds" / profile / "manifest.json"
+        if not manifest_path.exists():
+            fail(f"public/builds/{profile}/manifest.json is missing — run build_repo.py")
+        embedded_manifest = SRC / "plugin.program.solokodi.setup" / "resources" / "builds" / f"{profile}.json"
+        if not embedded_manifest.exists():
+            fail(f"embedded build manifest {profile}.json is missing from setup add-on")
 
 
 def verify_no_embedded_secrets() -> None:

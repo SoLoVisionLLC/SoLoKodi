@@ -1,0 +1,51 @@
+{
+  "id": "solotv",
+  "name": "SoLoTV",
+  "version": "1.0.0",
+  "description": "SoLo-branded streaming build powered by the Diggz Xenon ecosystem — movies, TV, live channels, and Debrid-ready addons.",
+  "website": "https://solokodi.sololink.cloud/solotv/",
+  "manifest_url": "https://solokodi.sololink.cloud/builds/solotv/manifest.json",
+  "repo_url": "https://solokodi.sololink.cloud/repo/addons.xml",
+  "repository_id": "repository.solokodi",
+  "build_type": "diggz",
+  "branding": {
+    "accent_color": "FF1565C0",
+    "tagline": "Stream everything. SoLo simple."
+  },
+  "diggz": {
+    "file_source_name": "diggzrepo",
+    "file_source_url": "https://diggz1.me/diggzrepo",
+    "repository_id": "repository.diggz",
+    "repository_zip": "Diggz_Repo.zip",
+    "wizard_addon_id": "plugin.program.chef21",
+    "wizard_label": "Chef Omega Wizard",
+    "recommended_build_hint": "Choose Xenon 4K (Debrid) or Xenon 4K Free in the Chef wizard."
+  },
+  "skin": {
+    "apply_on_setup": false,
+    "default_id": "skin.estuary",
+    "colors": [
+      ["lookandfeel.skincolors", "FF1565C0"]
+    ]
+  },
+  "content_addons": [],
+  "solokodi_addons": [],
+  "favourites": [
+    {
+      "name": "SoLoTV Setup",
+      "action": "RunAddon(plugin.program.solokodi.setup)"
+    },
+    {
+      "name": "Chef Omega Wizard",
+      "action": "RunAddon(plugin.program.chef21)"
+    }
+  ],
+  "setup_favourite": "SoLoTV Setup",
+  "wizard_steps": [
+    {"id": "diggz_repo", "label": "Install Diggz repository", "required": true},
+    {"id": "diggz_wizard", "label": "Install Chef Omega Wizard", "required": true},
+    {"id": "favourites", "label": "Create SoLoTV shortcuts", "required": true},
+    {"id": "realdebrid", "label": "Connect Real-Debrid (optional)", "required": false},
+    {"id": "launch_diggz", "label": "Install Xenon interface", "required": true}
+  ]
+}

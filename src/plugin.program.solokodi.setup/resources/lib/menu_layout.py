@@ -302,6 +302,8 @@ def menu_files_present(manifest=None):
 
 def apply_kids_home_menu(manifest=None):
     manifest = manifest or build_config.load_embedded_manifest()
+    if build_config.is_diggz_build(manifest):
+        return True
     skin_id = build_config.selected_skin_id(manifest)
     if skin_id == nimbus_layout.NIMBUS_SKIN_ID:
         return nimbus_layout.apply_nimbus_menu(manifest)

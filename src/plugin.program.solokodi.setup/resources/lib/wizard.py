@@ -7,11 +7,21 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from . import build_config, build_ops, menu_layout, status
+from . import build_config, build_ops, diggz_ops, menu_layout, status
 
 
-def notify(message, heading="SoLoKodi Wizard"):
-    xbmcgui.Dialog().notification(heading, message, xbmcgui.NOTIFICATION_INFO, 5000)
+def _wizard_heading(manifest=None):
+    manifest = manifest or build_config.load_embedded_manifest()
+    return build_config.build_info(manifest).get("name", "SoLoKodi") + " Setup"
+
+
+def notify(message, heading=None, manifest=None):
+    xbmcgui.Dialog().notification(
+        heading or _wizard_heading(manifest),
+        message,
+        xbmcgui.NOTIFICATION_INFO,
+        5000,
+    )
 
 
 def _progress(title, line):
@@ -22,8 +32,11 @@ def _progress(title, line):
 
 def _step_intro(step):
     intros = {
-        "realdebrid": "Connect Real-Debrid so Kids Real-Debrid can stream cached movies and your library.",
+        "realdebrid": "Connect Real-Debrid so premium cached streams work in Xenon and other addons.",
         "tmdb": "Add a free TMDb API key so the add-on can browse kids movies and TV.",
+        "diggz_repo": "Adds the official Diggz file source and installs repository.diggz from Diggz_Repo.zip.",
+        "diggz_wizard": "Installs the Chef Omega Wizard (plugin.program.chef21) from the Diggz repository.",
+        "launch_diggz": "Opens the Chef wizard so you can install Xenon 4K (Debrid or Free) and pick your skin.",
     }
     required = "Required" if step.get("required", True) else "Optional"
     body = intros.get(step["id"], "Continue with this step?")
@@ -119,26 +132,34 @@ def run_tmdb_step():
         return False
 
 
+def run_solotv_setup():
+    build_config.set_active_profile("solotv")
+    run_setup_wizard()
+
+
 def run_setup_wizard():
     manifest = build_config.load_embedded_manifest()
     build = build_config.build_info(manifest)
-    if not xbmcgui.Dialog().yesno(
-        "SoLoKodi Setup Wizard",
-        "This guided wizard sets up {0} v{1} step by step.\n\nReady to start?".format(
-            build.get("name", "SoLoKodi Kids"), build.get("version", "1")
-        ),
-    ):
+    heading = _wizard_heading(manifest)
+    tagline = build_config.branding(manifest).get("tagline", "")
+    intro = "This guided wizard sets up {0} v{1} step by step.".format(
+        build.get("name", "SoLoKodi"),
+        build.get("version", "1"),
+    )
+    if tagline:
+        intro = "{0}\n\n{1}".format(intro, tagline)
+    if not xbmcgui.Dialog().yesno(heading, intro + "\n\nReady to start?"):
         return
 
     steps = build_config.wizard_steps(manifest)
-    progress = _progress("SoLoKodi Setup Wizard", "Starting...")
+    progress = _progress(heading, "Starting...")
     total = len(steps)
     results = []
 
     for index, step in enumerate(steps, start=1):
         if progress.iscanceled():
             progress.close()
-            notify("Setup wizard cancelled")
+            notify("Setup wizard cancelled", manifest=manifest)
             return
 
         step_id = step["id"]
@@ -153,7 +174,32 @@ def run_setup_wizard():
             results.append((step["label"], themed, [] if themed else ["skin not activated"]))
         elif step_id == "favourites":
             menu_ready = run_favourites_step(manifest, progress, index, total)
-            results.append((step["label"], menu_ready, [] if menu_ready else ["home menu not configured"]))
+            detail = [] if menu_ready else ["shortcuts not configured"]
+            results.append((step["label"], menu_ready, detail))
+        elif step_id == "diggz_repo":
+            progress.update(int((index / total) * 100), "Installing Diggz repository...")
+            ok = diggz_ops.install_diggz_repository(manifest)
+            results.append((step["label"], ok, [] if ok else ["Diggz repository"]))
+        elif step_id == "diggz_wizard":
+            progress.update(int((index / total) * 100), "Installing Chef Omega Wizard...")
+            ok = diggz_ops.install_chef_wizard(manifest)
+            results.append((step["label"], ok, [] if ok else ["Chef Omega Wizard"]))
+        elif step_id == "launch_diggz":
+            progress.close()
+            config = build_config.diggz_config(manifest)
+            hint = config.get("recommended_build_hint", "")
+            if _step_intro(step):
+                ok = diggz_ops.launch_chef_wizard(manifest)
+                if ok and hint:
+                    xbmcgui.Dialog().ok(
+                        heading,
+                        "Chef Omega Wizard is open.\n\n{0}\n\n"
+                        "When Xenon finishes installing, restart Kodi.".format(hint),
+                    )
+                results.append((step["label"], ok, [] if ok else ["Chef wizard not installed"]))
+            else:
+                results.append((step["label"], False, ["skipped"]))
+            progress = _progress(heading, "Continuing...")
         elif step_id == "realdebrid":
             progress.close()
             if _step_intro(step):
@@ -161,7 +207,7 @@ def run_setup_wizard():
                 results.append((step["label"], ok, [] if ok else ["skipped"]))
             else:
                 results.append((step["label"], False, ["skipped"]))
-            progress = _progress("SoLoKodi Setup Wizard", "Continuing...")
+            progress = _progress(heading, "Continuing...")
         elif step_id == "tmdb":
             progress.close()
             if _step_intro(step):
@@ -169,7 +215,7 @@ def run_setup_wizard():
                 results.append((step["label"], ok, [] if ok else ["skipped"]))
             else:
                 results.append((step["label"], False, ["skipped"]))
-            progress = _progress("SoLoKodi Setup Wizard", "Continuing...")
+            progress = _progress(heading, "Continuing...")
         else:
             progress.update(int((index / total) * 100), step.get("label", step_id))
 
@@ -183,12 +229,23 @@ def run_setup_wizard():
         if detail:
             lines.append("  - " + ", ".join(detail))
     lines.append("")
-    lines.append("Restart Kodi if the new skin is not visible yet.")
-    xbmcgui.Dialog().ok("SoLoKodi Setup Wizard", "\n".join(lines))
+    if build_config.is_diggz_build(manifest):
+        lines.append("Open Chef Omega Wizard from favourites to finish Xenon setup.")
+    else:
+        lines.append("Restart Kodi if the new skin is not visible yet.")
+    xbmcgui.Dialog().ok(heading, "\n".join(lines))
 
 
 def run_change_skin():
     manifest = build_config.load_embedded_manifest()
+    if build_config.is_diggz_build(manifest):
+        xbmcgui.Dialog().ok(
+            _wizard_heading(manifest),
+            "SoLoTV uses the Xenon skin from Chef Omega Wizard.\n\n"
+            "Open Chef Omega Wizard to change skins or rebuild Xenon.",
+        )
+        diggz_ops.launch_chef_wizard(manifest)
+        return
     skin_id = choose_skin(manifest)
     if not skin_id:
         return
@@ -221,17 +278,30 @@ def run_change_skin():
 
 def run_quick_repair():
     manifest = build_config.load_embedded_manifest()
-    progress = _progress("Repair Build", "Re-syncing your kids build...")
-    progress.update(20, "Installing missing add-ons...")
-    build_ops.install_addons(build_config.content_addons(manifest))
-    build_ops.install_addons(build_config.solokodi_addons(manifest))
-    progress.update(55, "Refreshing theme, shortcuts, and home menu...")
-    build_ops.apply_theme(manifest)
-    build_ops.write_favourites(manifest)
-    menu_layout.apply_kids_home_menu(manifest)
+    build = build_config.build_info(manifest)
+    progress = _progress("Repair Build", "Re-syncing {0}...".format(build.get("name", "build")))
+    if build_config.is_diggz_build(manifest):
+        progress.update(20, "Checking Diggz repository...")
+        diggz_ops.install_diggz_repository(manifest)
+        progress.update(45, "Checking Chef Omega Wizard...")
+        diggz_ops.install_chef_wizard(manifest)
+        progress.update(70, "Refreshing SoLoTV shortcuts...")
+        build_ops.apply_theme(manifest)
+        build_ops.write_favourites(manifest)
+    else:
+        progress.update(20, "Installing missing add-ons...")
+        build_ops.install_addons(build_config.content_addons(manifest))
+        build_ops.install_addons(build_config.solokodi_addons(manifest))
+        progress.update(55, "Refreshing theme, shortcuts, and home menu...")
+        build_ops.apply_theme(manifest)
+        build_ops.write_favourites(manifest)
+        menu_layout.apply_kids_home_menu(manifest)
     build_ops.sync_build_settings(manifest)
     progress.update(100, "Done")
     time.sleep(0.3)
     progress.close()
-    notify("Build repaired")
-    xbmcgui.Dialog().ok("Repair Build", "Your kids build shortcuts, home menu, theme, and add-ons were refreshed.")
+    notify("Build repaired", manifest=manifest)
+    xbmcgui.Dialog().ok(
+        "Repair Build",
+        "Your {0} shortcuts, theme, and add-ons were refreshed.".format(build.get("name", "build")),
+    )

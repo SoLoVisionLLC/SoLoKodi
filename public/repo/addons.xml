@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.program.solokodi.setup" name="SoLoKodi Kids Setup" version="0.3.6" provider-name="SoLoVision">
+<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.4.0" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -9,14 +9,14 @@
   </extension>
   <extension point="xbmc.service" library="service.py" start="login"/>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en_US">Guided setup wizard and update manager for the SoLoKodi Kids build.</summary>
-    <description lang="en_US">Walks through kids source installation, theme setup, shortcuts, Real-Debrid, and TMDb configuration. Checks for build updates and keeps SoLoKodi add-ons in sync with the hosted manifest.</description>
+    <summary lang="en_US">Guided setup wizard and update manager for SoLoKodi builds.</summary>
+    <description lang="en_US">Sets up SoLoKodi Kids or SoLoTV (Diggz Xenon). Installs sources, themes, Diggz repository, shortcuts, Real-Debrid, and checks for build updates from the hosted manifest.</description>
     <platform>all</platform>
     <license>MIT</license>
     <website>https://solokodi.sololink.cloud</website>
   </extension>
 </addon>
-<addon id="plugin.video.solokodi.kidsrd" name="SoLoKodi Kids Real-Debrid" version="0.2.0" provider-name="SoLoVision">
+<addon id="plugin.video.solokodi.kidsrd" name="SoLoKodi Kids Real-Debrid" version="0.2.3" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -25,14 +25,14 @@
   </extension>
   <extension point="xbmc.addon.metadata">
     <summary lang="en_US">Kids movies and shows through Real-Debrid.</summary>
-    <description lang="en_US">Browse kids and family content with TMDb, play from your Real-Debrid library, and stream cached titles when available. Uses Real-Debrid authorization from SoLoKodi Kids Setup. v0.2 adds TV torrent search, multi-file episode picking, and clearer connection status.</description>
+    <description lang="en_US">Browse kids and family content with TMDb, play from your Real-Debrid library, and stream cached titles when available. Uses Real-Debrid authorization from SoLoKodi Kids Setup. v0.2.3 improves modern kids TV discovery and torrent matching.</description>
     <platform>all</platform>
     <license>MIT</license>
     <website>https://solokodi.sololink.cloud</website>
   </extension>
 </addon>
-<addon id="repository.solokodi" name="SoLoKodi Kids Repository" version="0.4.8" provider-name="SoLoVision">
-  <extension point="xbmc.addon.repository" name="SoLoKodi Kids Repository">
+<addon id="repository.solokodi" name="SoLoKodi Repository" version="0.5.0" provider-name="SoLoVision">
+  <extension point="xbmc.addon.repository" name="SoLoKodi Repository">
     <dir>
       <info compressed="false">https://solokodi.sololink.cloud/repo/addons.xml</info>
       <checksum>https://solokodi.sololink.cloud/repo/addons.xml.md5</checksum>
@@ -40,8 +40,8 @@
     </dir>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en_US">SoLoKodi Kids build — fun Kodi setup for children.</summary>
-    <description lang="en_US">The SoLoKodi Kids repository ships a setup wizard, update manager, and kids streaming add-ons. Install once, then use the wizard to stay current.</description>
+    <summary lang="en_US">SoLoKodi builds — Kids, SoLoTV, and more.</summary>
+    <description lang="en_US">The SoLoKodi repository ships setup wizards, update managers, and build-specific add-ons. Install once, pick Kids or SoLoTV, and use the wizard to stay current.</description>
     <platform>all</platform>
     <license>MIT</license>
     <website>https://solokodi.sololink.cloud</website>

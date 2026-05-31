@@ -269,12 +269,15 @@ def activate_skin(skin_id):
 
 def apply_theme(manifest=None, skin_id=None):
     manifest = manifest or build_config.load_embedded_manifest()
-    skin_id = skin_id or build_config.selected_skin_id(manifest)
     skin = build_config.skin_config(manifest)
 
     for setting, value in skin.get("colors") or []:
         json_rpc("Settings.SetSettingValue", {"setting": setting, "value": value})
 
+    if skin.get("apply_on_setup") is False or build_config.is_diggz_build(manifest):
+        return True
+
+    skin_id = skin_id or build_config.selected_skin_id(manifest)
     install_selected_skin(skin_id, manifest)
 
     if active_skin() == skin_id:
@@ -307,6 +310,9 @@ def _persist_skin_in_guisettings(skin_id):
 
 def theme_is_active(manifest=None):
     manifest = manifest or build_config.load_embedded_manifest()
+    skin = build_config.skin_config(manifest)
+    if skin.get("apply_on_setup") is False or build_config.is_diggz_build(manifest):
+        return True
     skin_id = build_config.selected_skin_id(manifest)
     return bool(skin_id and active_skin() == skin_id)
 
@@ -314,22 +320,31 @@ def theme_is_active(manifest=None):
 def build_favourites_xml(manifest=None):
     manifest = manifest or build_config.load_embedded_manifest()
     lines = ["<favourites>"]
-    for entry in build_config.content_addons(manifest):
-        name = xml.sax.saxutils.escape(entry.get("favourite", entry["label"]))
-        lines.append(
-            '    <favourite name="{0}">ActivateWindow(Videos,plugin://{1}/,return)</favourite>'.format(
-                name, entry["id"]
+    custom = manifest.get("favourites") or []
+    if custom:
+        for entry in custom:
+            name = xml.sax.saxutils.escape(entry.get("name") or "Shortcut")
+            action = entry.get("action") or ""
+            lines.append('    <favourite name="{0}">{1}</favourite>'.format(name, action))
+    else:
+        for entry in build_config.content_addons(manifest):
+            name = xml.sax.saxutils.escape(entry.get("favourite", entry["label"]))
+            lines.append(
+                '    <favourite name="{0}">ActivateWindow(Videos,plugin://{1}/,return)</favourite>'.format(
+                    name, entry["id"]
+                )
             )
-        )
-    for entry in build_config.solokodi_addons(manifest):
-        name = xml.sax.saxutils.escape(entry.get("favourite", entry["label"]))
-        lines.append(
-            '    <favourite name="{0}">ActivateWindow(Videos,plugin://{1}/,return)</favourite>'.format(
-                name, entry["id"]
+        for entry in build_config.solokodi_addons(manifest):
+            name = xml.sax.saxutils.escape(entry.get("favourite", entry["label"]))
+            lines.append(
+                '    <favourite name="{0}">ActivateWindow(Videos,plugin://{1}/,return)</favourite>'.format(
+                    name, entry["id"]
+                )
             )
+        setup_name = manifest.get("setup_favourite") or "SoLoKodi Setup"
+        lines.append(
+            '    <favourite name="{0}">RunAddon(plugin.program.solokodi.setup)</favourite>'.format(setup_name)
         )
-    setup_name = manifest.get("setup_favourite") or "SoLoKodi Kids Setup"
-    lines.append('    <favourite name="{0}">RunAddon(plugin.program.solokodi.setup)</favourite>'.format(setup_name))
     lines.append("</favourites>")
     return "\n".join(lines) + "\n"
 

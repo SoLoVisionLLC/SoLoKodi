@@ -51,6 +51,21 @@ def step_theme():
 def step_favourites():
     setup = xbmcaddon.Addon()
     manifest = build_config.load_embedded_manifest()
+    setup_name = manifest.get("setup_favourite") or "SoLoKodi Setup"
+    if build_config.is_diggz_build(manifest):
+        profile_dir = xbmcvfs.translatePath("special://profile/")
+        target = profile_dir.rstrip("/\\") + "/favourites.xml"
+        if not xbmcvfs.exists(target):
+            return {"complete": False, "missing": ["shortcuts"], "label": "SoLoTV shortcuts"}
+        with xbmcvfs.File(target) as handle:
+            content = handle.read()
+        shortcuts_ok = setup_name in content
+        return {
+            "complete": shortcuts_ok,
+            "missing": [] if shortcuts_ok else ["shortcuts"],
+            "label": "SoLoTV shortcuts",
+        }
+
     if setup.getSetting("setup_complete") == "true" and menu_layout.menu_files_present(manifest):
         return {"complete": True, "missing": [], "label": "Home shortcuts"}
 
@@ -61,7 +76,7 @@ def step_favourites():
 
     with xbmcvfs.File(target) as handle:
         content = handle.read()
-    shortcuts_ok = "PBS Kids" in content and "SoLoKodi Kids Setup" in content
+    shortcuts_ok = "PBS Kids" in content and setup_name in content
     menu_ok = menu_layout.menu_files_present(manifest)
     complete = shortcuts_ok and menu_ok
     missing = []
@@ -74,6 +89,34 @@ def step_favourites():
         "missing": missing,
         "label": "Home shortcuts",
     }
+
+
+def step_diggz_repo():
+    manifest = build_config.load_embedded_manifest()
+    config = build_config.diggz_config(manifest)
+    repo_id = config.get("repository_id")
+    if repo_id and build_ops.addon_installed(repo_id):
+        return {"complete": True, "missing": [], "label": "Diggz repository"}
+    return {"complete": False, "missing": ["Diggz repository"], "label": "Diggz repository"}
+
+
+def step_diggz_wizard():
+    manifest = build_config.load_embedded_manifest()
+    config = build_config.diggz_config(manifest)
+    wizard_id = config.get("wizard_addon_id")
+    label = config.get("wizard_label") or "Chef Omega Wizard"
+    if wizard_id and build_ops.addon_installed(wizard_id):
+        return {"complete": True, "missing": [], "label": label}
+    return {"complete": False, "missing": [label], "label": label}
+
+
+def step_launch_diggz():
+    manifest = build_config.load_embedded_manifest()
+    config = build_config.diggz_config(manifest)
+    wizard_id = config.get("wizard_addon_id")
+    if not wizard_id or not build_ops.addon_installed(wizard_id):
+        return {"complete": False, "missing": ["open Chef wizard"], "label": "Xenon interface"}
+    return {"complete": True, "missing": [], "label": "Xenon interface"}
 
 
 def step_realdebrid():
@@ -99,6 +142,9 @@ STEP_CHECKS = {
     "favourites": step_favourites,
     "realdebrid": step_realdebrid,
     "tmdb": step_tmdb,
+    "diggz_repo": step_diggz_repo,
+    "diggz_wizard": step_diggz_wizard,
+    "launch_diggz": step_launch_diggz,
 }
 
 

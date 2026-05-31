@@ -5,6 +5,7 @@ import xbmcaddon
 import xbmcvfs
 
 DEFAULT_PROFILE = "kids"
+BUILD_PROFILES = ("kids", "solotv")
 
 
 def addon():
@@ -105,3 +106,38 @@ def manifest_url(manifest=None):
 def wizard_steps(manifest=None):
     manifest = manifest or load_embedded_manifest()
     return manifest.get("wizard_steps") or []
+
+
+def build_type(manifest=None):
+    manifest = manifest or load_embedded_manifest()
+    return manifest.get("build_type") or "kids"
+
+
+def is_diggz_build(manifest=None):
+    return build_type(manifest) == "diggz"
+
+
+def diggz_config(manifest=None):
+    manifest = manifest or load_embedded_manifest()
+    return manifest.get("diggz") or {}
+
+
+def branding(manifest=None):
+    manifest = manifest or load_embedded_manifest()
+    return manifest.get("branding") or {}
+
+
+def list_profile_manifests():
+    base = addon().getAddonInfo("path")
+    builds_dir = xbmcvfs.translatePath(base + "/resources/builds/")
+    profiles = []
+    for profile_id in BUILD_PROFILES:
+        path = builds_dir.rstrip("/\\") + "/{0}.json".format(profile_id)
+        if xbmcvfs.exists(path):
+            profiles.append(profile_id)
+    return profiles
+
+
+def set_active_profile(profile_id):
+    addon().setSetting("build_profile", profile_id)
+    addon().setSetting("setup_complete", "false")

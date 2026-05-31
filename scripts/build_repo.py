@@ -90,6 +90,16 @@ def generate_build_manifest(build_path: Path, addon_dirs: list[Path]) -> dict:
         "solokodi_addons": [],
         "wizard_steps": build["wizard_steps"],
     }
+    for optional_key in (
+        "build_type",
+        "branding",
+        "diggz",
+        "favourites",
+        "setup_favourite",
+        "repository_id",
+    ):
+        if optional_key in build:
+            manifest[optional_key] = build[optional_key]
 
     for addon in build["solokodi_addons"]:
         meta = solokodi_versions.get(addon["id"], {})
@@ -129,6 +139,10 @@ def main() -> int:
     if not addon_dirs:
         raise SystemExit("No add-ons found under src/")
 
+    for build_path in sorted(BUILDS_SRC.glob("*.json")):
+        manifest = generate_build_manifest(build_path, addon_dirs)
+        write_build_manifests(build_path, manifest)
+
     for addon_dir in addon_dirs:
         zip_addon(addon_dir)
 
@@ -140,7 +154,6 @@ def main() -> int:
 
     for build_path in sorted(BUILDS_SRC.glob("*.json")):
         manifest = generate_build_manifest(build_path, addon_dirs)
-        write_build_manifests(build_path, manifest)
         print(
             "Built manifest for {0} v{1}".format(
                 manifest["build"]["name"], manifest["build"]["version"]

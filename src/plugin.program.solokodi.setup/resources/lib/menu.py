@@ -21,6 +21,9 @@ def add_item(label, action, description, is_folder=False):
 def show_menu():
     summary = status.completion_summary()
     build = build_config.build_info()
+    manifest = build_config.load_embedded_manifest()
+    is_solotv = build_config.is_diggz_build(manifest)
+    build_name = build.get("name", "SoLoKodi")
 
     if summary["ready"]:
         headline = "Build ready — {0}/{1} required steps done".format(
@@ -35,7 +38,7 @@ def show_menu():
         "Run Setup Wizard",
         "wizard",
         "Guided step-by-step setup for {0} v{1}. {2}".format(
-            build.get("name", "SoLoKodi Kids"),
+            build_name,
             build.get("version", "?"),
             headline,
         ),
@@ -53,22 +56,31 @@ def show_menu():
     add_item(
         "Update Build Now",
         "update_build",
-        "Install the latest SoLoKodi repository, add-ons, home menu, shortcuts, and theme.",
+        "Install the latest SoLoKodi repository, add-ons, shortcuts, and theme.",
     )
-    add_item(
-        "Change Kids Skin",
-        "change_skin",
-        "Switch between Bello and Nimbus with the same kids home menu shortcuts.",
-    )
+
+    if is_solotv:
+        add_item(
+            "Open Chef Omega Wizard",
+            "open_chef",
+            "Install or update the Xenon 4K interface and streaming addons.",
+        )
+    else:
+        add_item(
+            "Change Kids Skin",
+            "change_skin",
+            "Switch between Bello and Nimbus with the same kids home menu shortcuts.",
+        )
+        add_item(
+            "Open Kids Real-Debrid",
+            "open_kidsrd",
+            "Browse and play kids movies and shows from your Real-Debrid library.",
+        )
+
     add_item(
         "Repair Build",
         "repair",
-        "Re-install missing add-ons and refresh the kids home menu, shortcuts, and theme without changing settings.",
-    )
-    add_item(
-        "Open Kids Real-Debrid",
-        "open_kidsrd",
-        "Browse and play kids movies and shows from your Real-Debrid library.",
+        "Re-install missing pieces and refresh shortcuts without changing your settings.",
     )
     add_item(
         "Connect Real-Debrid",
@@ -80,16 +92,31 @@ def show_menu():
         "check_rd",
         "Confirm that the local Real-Debrid token works.",
     )
-    add_item(
-        "Parent Tips (Optional)",
-        "parent_tips",
-        "Optional profile and lock ideas if adults share this device.",
-    )
+
+    if not is_solotv:
+        add_item(
+            "Parent Tips (Optional)",
+            "parent_tips",
+            "Optional profile and lock ideas if adults share this device.",
+        )
+
     add_item(
         "Clear Real-Debrid Authorization",
         "clear_rd",
         "Remove Real-Debrid credentials from this Kodi profile.",
     )
+
+    profiles = build_config.list_profile_manifests()
+    if len(profiles) > 1:
+        other = "kids" if build_config.profile_id() == "solotv" else "solotv"
+        if other in profiles:
+            label = "Switch to SoLoKodi Kids" if other == "kids" else "Switch to SoLoTV"
+            add_item(
+                label,
+                "switch_{0}".format(other),
+                "Change the active build profile and run its setup wizard.",
+            )
+
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -98,6 +125,13 @@ def run():
     action = params.get("action", ["menu"])[0]
 
     if action in ("wizard", "kids_setup", "family_setup"):
+        wizard.run_setup_wizard()
+    elif action == "init_solotv":
+        wizard.run_solotv_setup()
+    elif action == "switch_solotv":
+        wizard.run_solotv_setup()
+    elif action == "switch_kids":
+        build_config.set_active_profile("kids")
         wizard.run_setup_wizard()
     elif action == "status":
         xbmcgui.Dialog().textviewer("Build Status", status.status_report())
@@ -111,6 +145,15 @@ def run():
         wizard.run_quick_repair()
     elif action == "change_skin":
         wizard.run_change_skin()
+    elif action == "open_chef":
+        from . import diggz_ops
+
+        manifest = build_config.load_embedded_manifest()
+        if not diggz_ops.launch_chef_wizard(manifest):
+            xbmcgui.Dialog().ok(
+                "SoLoTV",
+                "Chef Omega Wizard is not installed yet.\n\nRun the SoLoTV Setup Wizard first.",
+            )
     elif action == "connect_rd":
         setup.connect_real_debrid()
     elif action == "open_kidsrd":

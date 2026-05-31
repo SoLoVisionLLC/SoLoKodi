@@ -41,17 +41,26 @@ update manifest.
 - [x] v0.2.1 — remove `IsPlayable` on plugin action items (fixes “skipping unplayable item” on Discover)
 - [x] v0.2.3 — Modern Kids TV browse (2015+), IMDB TV search, relaxed torrent matching
 
+### SoLoTV Build (v1.0.0)
+
+- [x] Build manifest `src/builds/solotv.json` based on [Diggz repo](https://diggz1.me/diggzrepo)
+- [x] Install `repository.diggz` from `Diggz_Repo.zip` via setup wizard
+- [x] Install Chef Omega Wizard (`plugin.program.chef21`)
+- [x] SoLoTV branding — blue accent, favourites, wizard copy
+- [x] Profile switcher (Kids ↔ SoLoTV) in setup add-on
+- [x] Landing page at `/solotv/`
+
 ## Next Up
 
 - [ ] Add-on icons and fanart for SoLoKodi repo branding
 - [ ] Curated YouTube playlist deep-links (kids channels by ID)
 - [ ] CI pipeline to build, verify, and deploy on push
-- [ ] Second build profile (e.g. sports or movies)
+- [ ] Sports build profile
 
 ## Build Profiles
 
 | Profile | Status | Manifest |
 |---------|--------|----------|
 | **Kids** | v1.3.0 | `/builds/kids/manifest.json` |
+| **SoLoTV** | v1.0.0 | `/builds/solotv/manifest.json` |
 | Sports | Planned | `/builds/sports/manifest.json` |
-| Movies | Planned | `/builds/movies/manifest.json` |
