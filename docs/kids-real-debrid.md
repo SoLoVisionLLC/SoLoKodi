@@ -1,25 +1,23 @@
 # SoLoKodi Kids Real-Debrid Add-on
 
 `plugin.video.solokodi.kidsrd` streams kids and family content through a
-connected Real-Debrid account. It reads Real-Debrid, Trakt, and TMDb credentials
-from SoLoKodi Kids Setup, with add-on settings as a fallback.
+connected Real-Debrid account. It reads Real-Debrid authorization from
+SoLoKodi Kids Setup and uses the add-on TMDb setting for discovery metadata.
 
 ## Setup
 
 1. Run Kids Build Setup; it installs this add-on automatically.
 2. In SoLoKodi Kids Setup, choose Connect Real-Debrid.
-3. Save a Trakt API token for Family Trakt Lists.
-4. Save a free [TMDb API key](https://www.themoviedb.org/settings/api).
-5. Open Kids Real-Debrid from favourites or the setup menu.
-6. Check Real-Debrid Status in the add-on menu to confirm premium time, Trakt, and TMDb.
+3. Save a free [TMDb API key](https://www.themoviedb.org/settings/api).
+4. Open Kids Real-Debrid from favourites or the setup menu.
+5. Check Real-Debrid Status in the add-on menu to confirm premium time and TMDb.
 
 ## Menu Sections
 
 | Section | What it does |
 |---------|--------------|
-| Real-Debrid Status | Shows username, premium time left, Trakt token status, and TMDb key status |
+| Real-Debrid Status | Shows username, premium time left, and TMDb key status |
 | My Kids Library | RD torrents/downloads filtered by kids keywords; pick a title, then pick a file/episode |
-| Family Trakt Lists | Curated family-friendly Trakt lists for kids movies, mixed picks, and TV shows |
 | Discover Kids Movies | Popular G/PG animation and family movies from TMDb |
 | Discover Kids TV | Popular kids and animation series from TMDb; searches RD cache, then torrent sources |
 | All Real-Debrid Torrents | Unfiltered view of your RD torrent list |
@@ -39,23 +37,16 @@ from SoLoKodi Kids Setup, with add-on settings as a fallback.
 2. If not cached, search for a family/TV torrent pack and add it to Real-Debrid.
 3. If the torrent has multiple video files, choose the episode or file to play.
 
-### Trakt Lists
-
-1. Load a public Trakt list using the saved Trakt API token.
-2. Keep only movie/show entries with TMDb IDs.
-3. Send movie and show playback through the existing Kids Real-Debrid flow.
-
 ## Architecture
 
 ```text
-plugin.program.solokodi.setup -> stores RD, Trakt, and TMDb credentials
-plugin.video.solokodi.kidsrd  -> reads credentials, browses Trakt/TMDb, plays via RD
+plugin.program.solokodi.setup -> stores RD credentials
+plugin.video.solokodi.kidsrd  -> reads RD credentials, browses TMDb, plays via RD
 ```
 
 Key modules under `resources/lib/`:
 
 - `rd_client.py` - Real-Debrid API and token refresh
-- `trakt_client.py` - Family-friendly Trakt list browsing
 - `tmdb_client.py` - Kids movie/TV discovery and metadata lookup
 - `resolver.py` - Magnet lookup
 - `player.py` - Select files, unrestrict, play

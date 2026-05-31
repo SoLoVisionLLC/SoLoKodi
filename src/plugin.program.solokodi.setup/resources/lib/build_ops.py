@@ -89,15 +89,6 @@ def install_addons(entries):
     return installed, failed
 
 
-def _trakt_list_action(entry):
-    query = "action=trakt_list&user={0}&slug={1}&media_type={2}".format(
-        entry["user"],
-        entry["slug"],
-        entry.get("media_type", "mixed"),
-    )
-    return 'ActivateWindow(Videos,"plugin://plugin.video.solokodi.kidsrd/?{0}",return)'.format(query)
-
-
 def install_repository_from_zip(option):
     repo_id = option.get("repository_id")
     zip_name = option.get("repository_zip")
@@ -350,10 +341,6 @@ def build_favourites_xml(manifest=None):
                     name, entry["id"]
                 )
             )
-        for entry in build_config.family_trakt_lists(manifest):
-            name = xml.sax.saxutils.escape(entry.get("favourite", entry["label"]))
-            action = xml.sax.saxutils.escape(_trakt_list_action(entry))
-            lines.append('    <favourite name="{0}">{1}</favourite>'.format(name, action))
         setup_name = manifest.get("setup_favourite") or "SoLoKodi Setup"
         lines.append(
             '    <favourite name="{0}">RunAddon(plugin.program.solokodi.setup)</favourite>'.format(setup_name)

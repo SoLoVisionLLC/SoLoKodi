@@ -140,11 +140,6 @@ def save_trakt_api_token(token):
     if not value:
         return False
     ADDON.setSetting("trakt_api_token", value)
-    try:
-        kidsrd = xbmcaddon.Addon("plugin.video.solokodi.kidsrd")
-        kidsrd.setSetting("trakt_api_token", value)
-    except RuntimeError:
-        pass
     notify("Trakt API token saved")
     return True
 
@@ -170,7 +165,6 @@ def clear_api_credentials():
         ADDON.setSetting(key, "")
     try:
         kidsrd = xbmcaddon.Addon("plugin.video.solokodi.kidsrd")
-        kidsrd.setSetting("trakt_api_token", "")
         kidsrd.setSetting("tmdb_api_key", "")
     except RuntimeError:
         pass

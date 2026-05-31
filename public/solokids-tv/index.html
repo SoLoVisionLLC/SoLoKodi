@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SoLoKids TV - SoLoKodi Streaming Build</title>
+    <meta name="description" content="Kid-friendly SoLoTV clone for Kodi with Real-Debrid-ready playback and SoLoKids TV artwork.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+      :root { --aqua: #00b8d4; --orange: #ff7043; --purple: #7e57c2; --ink: #102a43; --paper: #fff8e6; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; font-family: Nunito, system-ui, sans-serif; background: #fff8e6; color: var(--ink); line-height: 1.55; }
+      .hero { min-height: 92vh; display: grid; align-items: end; background-image: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,248,230,.94)), url("/solokids-tv/cards/solokids-tv.png"); background-size: cover; background-position: center; }
+      .wrap { width: min(58rem, calc(100% - 2rem)); margin: 0 auto; padding: 2rem 0 3rem; }
+      h1 { font-family: "Baloo 2", system-ui, sans-serif; font-size: clamp(3rem, 10vw, 6.5rem); line-height: .9; margin: 0; color: var(--ink); }
+      h1 span { color: var(--orange); }
+      .lede { max-width: 42rem; font-size: clamp(1.1rem, 2.2vw, 1.35rem); font-weight: 700; margin: 1rem 0 1.5rem; }
+      .actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+      .button { display: inline-block; border-radius: 8px; padding: .8rem 1.1rem; font-weight: 800; text-decoration: none; color: var(--ink); background: #fff; border: 2px solid rgba(16,42,67,.12); }
+      .button.primary { background: var(--aqua); border-color: var(--aqua); color: #fff; }
+      main { width: min(58rem, calc(100% - 2rem)); margin: 0 auto; padding: 2rem 0 4rem; }
+      section { margin-top: 2rem; }
+      h2 { font-family: "Baloo 2", system-ui, sans-serif; font-size: 1.7rem; margin-bottom: .6rem; }
+      article { background: #fff; border: 1px solid rgba(16,42,67,.12); border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: .85rem; }
+      a { color: #006d7e; }
+      code { background: rgba(0,184,212,.12); padding: .1rem .25rem; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <h1>SoLoKids <span>TV</span></h1>
+        <p class="lede">A kid-friendly clone of SoLoTV with bright artwork, simple streaming shortcuts, and Real-Debrid-ready playback.</p>
+        <div class="actions">
+          <a class="button primary" href="/solokodi/repository.solokodi-0.5.0.zip">SoLoKodi Repo</a>
+          <a class="button" href="/solokids-tv/builds.xml">Build List</a>
+          <a class="button" href="/solotv/">SoLoTV</a>
+        </div>
+      </div>
+    </header>
+    <main>
+      <section>
+        <h2>Install</h2>
+        <article>
+          <ol>
+            <li>Install <strong>repository.solokodi</strong>, then install <strong>SoLoKodi Setup</strong>.</li>
+            <li>Choose <strong>SoLoKids TV</strong> in the build picker.</li>
+            <li>Connect Real-Debrid, then open <strong>SoLoKids TV Build Wizard</strong>.</li>
+            <li>Choose <strong>SoLoKids TV 4K</strong> and restart Kodi after the interface installs.</li>
+          </ol>
+        </article>
+      </section>
+      <section>
+        <h2>Profile</h2>
+        <article>
+          <p>SoLoKids TV is separate from SoLoKodi Kids. It does not install the official kids-source menu set and does not add Trakt family playlist menus. Playback is expected to run through Real-Debrid-capable streaming add-ons in the restored build.</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

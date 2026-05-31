@@ -59,11 +59,6 @@ def solokodi_addons(manifest=None):
     return manifest.get("solokodi_addons") or []
 
 
-def family_trakt_lists(manifest=None):
-    manifest = manifest or load_embedded_manifest()
-    return manifest.get("family_trakt_lists") or []
-
-
 def all_addons(manifest=None):
     manifest = manifest or load_embedded_manifest()
     items = []

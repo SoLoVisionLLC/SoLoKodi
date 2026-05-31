@@ -1,8 +1,10 @@
 # SoLoKodi Kids Build
 
 SoLoKodi is a family of Kodi builds for different situations. **SoLoKodi Kids**
-is the first profile — a fun, colorful setup that installs every official
-kids source we could find from the Kodi repository.
+is the first profile, a fun setup that installs official kids sources from the
+Kodi repository. **SoLoKids TV** is a separate kid-friendly clone of the SoLoTV
+streaming build that uses Real-Debrid-ready playback instead of Trakt playlist
+menus.
 
 ## What the Kids Build Installs
 
@@ -72,5 +74,5 @@ See [docs/kids-real-debrid.md](docs/kids-real-debrid.md) for setup details.
 
 ## More Builds
 
-Sports, movies, and other SoLoKodi profiles are planned. Each build will have
-its own sources, theme, and setup profile.
+Available streaming profiles now include **SoLoTV** and **SoLoKids TV**. Each
+build has its own sources, theme, artwork, and setup profile.

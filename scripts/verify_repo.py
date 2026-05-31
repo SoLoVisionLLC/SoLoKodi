@@ -14,6 +14,7 @@ PUBLIC = ROOT / "public"
 REPO = PUBLIC / "repo"
 SOLOTV_REPO = PUBLIC / "solotv" / "repo"
 SOLOTV_CONFIG = SRC / "solotv_build" / "build.json"
+SOLOKIDS_TV_CONFIG = SRC / "solokids_tv_build" / "build.json"
 SECRET_MARKERS = ("auth_token=", "SOLOVISION_COOLIFY_API_TOKEN")
 SOLOTV_SKIN_SHORTCUT_SKINS = (
     "skin.diggzflix2",
@@ -34,12 +35,35 @@ SOLOTV_MAINMENU_LABELS = (
     "Settings",
     "Exit",
 )
-EXPECTED_KIDS_TRAKT_LISTS = (
-    ("tvgeniekodi", "trending-kids-movies", "movie"),
-    ("kristaeglover", "kids", "mixed"),
-    ("mrspacegoose", "kids-top-tv-shows", "show"),
+SOLOKIDS_TV_MAINMENU_LABELS = (
+    "Kids Movies",
+    "Kids TV",
+    "Live Kids TV",
+    "Search",
+    "Add-ons",
+    "SoLoKids TV Setup",
+    "Settings",
+    "Exit",
 )
 KIDS_FRIENDLY_COLORS = ("FFFF7043", "FF00B8D4", "FF7E57C2", "FFFFCA28")
+STREAMING_BUILDS = (
+    {
+        "profile": "solotv",
+        "config": SOLOTV_CONFIG,
+        "public_dir": PUBLIC / "solotv",
+        "zip_prefix": "solotv",
+        "labels": SOLOTV_MAINMENU_LABELS,
+        "allow_trakt_menu": True,
+    },
+    {
+        "profile": "solokids-tv",
+        "config": SOLOKIDS_TV_CONFIG,
+        "public_dir": PUBLIC / "solokids-tv",
+        "zip_prefix": "solokids-tv",
+        "labels": SOLOKIDS_TV_MAINMENU_LABELS,
+        "allow_trakt_menu": False,
+    },
+)
 
 
 def fail(message: str) -> None:
@@ -77,7 +101,7 @@ def verify_zips(root: ET.Element) -> None:
             if expected not in archive.namelist():
                 fail(f"{zip_path} does not contain {expected}")
             if addon_id == "plugin.program.solokodi.setup":
-                for profile in ("kids", "solotv"):
+                for profile in ("kids", "solotv", "solokids-tv"):
                     manifest_entry = f"{addon_id}/resources/builds/{profile}.json"
                     if manifest_entry not in archive.namelist():
                         fail(f"{zip_path} does not contain embedded build manifest {manifest_entry}")
@@ -90,7 +114,7 @@ def verify_zips(root: ET.Element) -> None:
     if legacy_root_zip.exists():
         fail("legacy root-level repository ZIP should redirect, not exist as a file")
 
-    for profile in ("kids", "solotv"):
+    for profile in ("kids", "solotv", "solokids-tv"):
         manifest_path = PUBLIC / "builds" / profile / "manifest.json"
         if not manifest_path.exists():
             fail(f"public/builds/{profile}/manifest.json is missing — run build_repo.py")
@@ -195,6 +219,7 @@ def verify_setup_credential_steps() -> None:
     status_path = SRC / "plugin.program.solokodi.setup" / "resources" / "lib" / "status.py"
     setup_path = SRC / "plugin.program.solokodi.setup" / "resources" / "lib" / "setup.py"
     solotv_path = SRC / "builds" / "solotv.json"
+    solokids_path = SRC / "builds" / "solokids-tv.json"
 
     settings = settings_path.read_text(encoding="utf-8")
     for setting_id in ("trakt_api_token", "tmdb_api_key"):
@@ -224,29 +249,25 @@ def verify_setup_credential_steps() -> None:
     if step_ids.index("tmdb") > step_ids.index("launch_wizard"):
         fail("SoLoTV TMDb step must run before launching the Build Wizard")
 
+    solokids = json.loads(solokids_path.read_text(encoding="utf-8"))
+    solokids_step_ids = [step["id"] for step in solokids.get("wizard_steps", [])]
+    if "realdebrid" not in solokids_step_ids:
+        fail("SoLoKids TV setup steps are missing required Real-Debrid setup")
+    if "trakt" in solokids_step_ids:
+        fail("SoLoKids TV must not add a Trakt setup step")
+    if solokids_step_ids.index("realdebrid") > solokids_step_ids.index("launch_wizard"):
+        fail("SoLoKids TV Real-Debrid setup must run before launching the Build Wizard")
 
-def verify_kids_trakt_lists_and_branding() -> None:
+
+def verify_kids_branding_without_trakt_lists() -> None:
     kids_path = SRC / "builds" / "kids.json"
     kids = json.loads(kids_path.read_text(encoding="utf-8"))
-    lists = kids.get("family_trakt_lists") or []
-    seen = set()
-    for entry in lists:
-        key = (entry.get("user"), entry.get("slug"), entry.get("media_type"))
-        if key in seen:
-            fail(f"Kids Trakt list is duplicated: {entry.get('user')}/{entry.get('slug')}")
-        seen.add(key)
-    for expected in EXPECTED_KIDS_TRAKT_LISTS:
-        if expected not in seen:
-            fail(
-                "Kids build is missing Trakt list "
-                f"{expected[0]}/{expected[1]} ({expected[2]})"
-            )
+    if "family_trakt_lists" in kids:
+        fail("Kids build must not define family Trakt playlist menus")
 
     step_ids = [step["id"] for step in kids.get("wizard_steps", [])]
-    if "trakt" not in step_ids:
-        fail("Kids setup wizard is missing the optional Trakt API token step")
-    if "tmdb" in step_ids and step_ids.index("trakt") > step_ids.index("tmdb"):
-        fail("Kids Trakt step should run before TMDb so KidsRD has list credentials")
+    if "trakt" in step_ids:
+        fail("Kids setup wizard must not add a Trakt playlist step")
 
     branding = kids.get("branding") or {}
     accent = branding.get("accent_color") or ""
@@ -261,75 +282,130 @@ def verify_kids_trakt_lists_and_branding() -> None:
         fail("Kids build card artwork is missing or too small")
 
 
-def verify_kidsrd_trakt_support() -> None:
+def verify_solokids_tv_profile_and_art() -> None:
+    build_path = SRC / "builds" / "solokids-tv.json"
+    build = json.loads(build_path.read_text(encoding="utf-8"))
+    if build.get("build_type") != "streaming":
+        fail("SoLoKids TV must be a streaming build profile")
+    if not build.get("requires_debrid"):
+        fail("SoLoKids TV must require Real-Debrid")
+    if "family_trakt_lists" in build:
+        fail("SoLoKids TV must not define family Trakt playlist menus")
+
+    config = build.get("streaming_repo") or {}
+    for key in ("build_list_url", "notify_url", "videos_url", "changelog_dir"):
+        if "/solokids-tv/" not in config.get(key, ""):
+            fail(f"SoLoKids TV streaming config {key} must point at /solokids-tv/")
+
+    card = SRC / "plugin.program.solokodi.setup" / "resources" / "media" / "cards" / build.get("card_image", "")
+    if not card.exists() or card.stat().st_size < 100_000:
+        fail("SoLoKids TV card artwork is missing or too small")
+
+    public_card = PUBLIC / "solokids-tv" / "cards" / build.get("card_image", "")
+    if not public_card.exists() or public_card.stat().st_size < 100_000:
+        fail("Published SoLoKids TV card artwork is missing or too small")
+
+    overrides_dir = SRC / "solokids_tv_build" / "overrides"
+    expected_overrides = (
+        "addons/plugin.program.chef21/resources/icon.png",
+        "addons/plugin.program.chef21/resources/skins/Default/media/background.png",
+        "addons/resource.images.skinbackgrounds.xenon/resources/Diggz/diggz.png",
+    )
+    for rel in expected_overrides:
+        path = overrides_dir / rel
+        if not path.exists() or path.stat().st_size < 20_000:
+            fail(f"SoLoKids TV image override is missing or too small: {rel}")
+
+
+def verify_no_family_trakt_playlist_menus() -> None:
     addon_dir = SRC / "plugin.video.solokodi.kidsrd"
-    addon_xml = (addon_dir / "addon.xml").read_text(encoding="utf-8")
-    settings = (addon_dir / "resources" / "settings.xml").read_text(encoding="utf-8")
-    constants = (addon_dir / "resources" / "lib" / "constants.py").read_text(encoding="utf-8")
-    router = (addon_dir / "resources" / "lib" / "router.py").read_text(encoding="utf-8")
-    trakt_client = addon_dir / "resources" / "lib" / "trakt_client.py"
+    files = (
+        addon_dir / "resources" / "settings.xml",
+        addon_dir / "resources" / "lib" / "constants.py",
+        addon_dir / "resources" / "lib" / "router.py",
+        SRC / "plugin.program.solokodi.setup" / "resources" / "lib" / "menu_layout.py",
+        SRC / "plugin.program.solokodi.setup" / "resources" / "lib" / "nimbus_layout.py",
+        ROOT / "scripts" / "write_kids_menu.py",
+    )
+    forbidden = (
+        "Family Trakt",
+        "family_trakt_lists",
+        "trakt_lists",
+        "trakt_list",
+        "FAMILY_TRAKT_LISTS",
+        "trakt_api_token",
+    )
+    for path in files:
+        text = path.read_text(encoding="utf-8")
+        for marker in forbidden:
+            if marker in text:
+                fail(f"Family Trakt playlist marker {marker!r} remains in {path}")
+    if (addon_dir / "resources" / "lib" / "trakt_client.py").exists():
+        fail("KidsRD must not ship a Trakt client for family playlist menus")
 
-    if 'version="0.2.4"' not in addon_xml:
-        fail("KidsRD add-on version must be bumped for Trakt list support")
-    if 'id="trakt_api_token"' not in settings:
-        fail("KidsRD settings are missing trakt_api_token")
-    if not trakt_client.exists():
-        fail("KidsRD is missing a Trakt API client")
-    for user, slug, media_type in EXPECTED_KIDS_TRAKT_LISTS:
-        if user not in constants or slug not in constants or media_type not in constants:
-            fail(f"KidsRD constants are missing Trakt list {user}/{slug}")
-    if "show_trakt_list" not in router or 'action == "trakt_list"' not in router:
-        fail("KidsRD router does not expose Trakt family lists")
 
-
-def _solotv_build_targets() -> list[Path]:
-    if not SOLOTV_CONFIG.exists():
+def _streaming_build_targets(streaming: dict) -> list[Path]:
+    config_path = streaming["config"]
+    if not config_path.exists():
         return []
-    config = json.loads(SOLOTV_CONFIG.read_text(encoding="utf-8"))
+    config = json.loads(config_path.read_text(encoding="utf-8"))
     version = config["version"]
     targets = []
     for source in config.get("sources", []):
         kodi = source.get("kodi")
         if kodi:
-            targets.append(PUBLIC / "solotv" / "builds" / f"solotv-{version}-{kodi}.zip")
+            targets.append(
+                streaming["public_dir"]
+                / "builds"
+                / f"{streaming['zip_prefix']}-{version}-{kodi}.zip"
+            )
     return targets
 
 
-def verify_solotv_skin_menus() -> None:
-    for zip_path in _solotv_build_targets():
-        if not zip_path.exists():
-            fail(f"Missing generated SoLoTV build zip: {zip_path}")
-        with zipfile.ZipFile(zip_path) as archive:
-            names = set(archive.namelist())
-            for skin_id in SOLOTV_SKIN_SHORTCUT_SKINS:
-                entry = (
-                    "userdata/addon_data/script.skinshortcuts/"
-                    f"{skin_id}-mainmenu.DATA.xml"
-                )
-                if entry not in names:
-                    fail(f"{zip_path.name} is missing {skin_id} main menu shortcuts")
-                labels = {
-                    (node.text or "").strip()
-                    for node in ET.fromstring(archive.read(entry)).findall("./shortcut/label")
-                }
-                missing = [label for label in SOLOTV_MAINMENU_LABELS if label not in labels]
-                if missing:
-                    fail(
-                        f"{zip_path.name} {skin_id} main menu is missing "
-                        f"{', '.join(missing)}"
+def verify_streaming_skin_menus() -> None:
+    for streaming in STREAMING_BUILDS:
+        for zip_path in _streaming_build_targets(streaming):
+            if not zip_path.exists():
+                fail(f"Missing generated {streaming['profile']} build zip: {zip_path}")
+            with zipfile.ZipFile(zip_path) as archive:
+                names = set(archive.namelist())
+                for skin_id in SOLOTV_SKIN_SHORTCUT_SKINS:
+                    entry = (
+                        "userdata/addon_data/script.skinshortcuts/"
+                        f"{skin_id}-mainmenu.DATA.xml"
                     )
+                    if entry not in names:
+                        fail(f"{zip_path.name} is missing {skin_id} main menu shortcuts")
+                    content = archive.read(entry)
+                    labels = {
+                        (node.text or "").strip()
+                        for node in ET.fromstring(content).findall("./shortcut/label")
+                    }
+                    missing = [label for label in streaming["labels"] if label not in labels]
+                    if missing:
+                        fail(
+                            f"{zip_path.name} {skin_id} main menu is missing "
+                            f"{', '.join(missing)}"
+                        )
+                    if not streaming["allow_trakt_menu"]:
+                        lowered = content.decode("utf-8", errors="replace").lower()
+                        if "trakt" in lowered:
+                            fail(f"{zip_path.name} {skin_id} contains a Trakt menu action")
 
 
-def verify_solotv_build_versions() -> None:
-    expected = {path.name for path in _solotv_build_targets()}
-    build_dir = PUBLIC / "solotv" / "builds"
-    if not expected or not build_dir.exists():
-        return
-    stale = sorted(
-        path.name for path in build_dir.glob("solotv-*.zip") if path.name not in expected
-    )
-    if stale:
-        fail(f"Stale SoLoTV build zip remains published: {stale[0]}")
+def verify_streaming_build_versions() -> None:
+    for streaming in STREAMING_BUILDS:
+        expected = {path.name for path in _streaming_build_targets(streaming)}
+        build_dir = streaming["public_dir"] / "builds"
+        if not expected or not build_dir.exists():
+            continue
+        stale = sorted(
+            path.name
+            for path in build_dir.glob(f"{streaming['zip_prefix']}-*.zip")
+            if path.name not in expected
+        )
+        if stale:
+            fail(f"Stale {streaming['profile']} build zip remains published: {stale[0]}")
 
 
 def verify_no_embedded_secrets() -> None:
@@ -351,10 +427,11 @@ def main() -> int:
     verify_zips(root)
     verify_solotv_wizard_package()
     verify_setup_credential_steps()
-    verify_kids_trakt_lists_and_branding()
-    verify_kidsrd_trakt_support()
-    verify_solotv_skin_menus()
-    verify_solotv_build_versions()
+    verify_kids_branding_without_trakt_lists()
+    verify_solokids_tv_profile_and_art()
+    verify_no_family_trakt_playlist_menus()
+    verify_streaming_skin_menus()
+    verify_streaming_build_versions()
     verify_no_embedded_secrets()
     print("Repository verification passed")
     return 0

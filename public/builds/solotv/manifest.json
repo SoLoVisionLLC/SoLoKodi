@@ -22,7 +22,7 @@
       "name": "SoLoTV Build Wizard"
     }
   ],
-  "generated_at": "2026-05-31T19:55:56Z",
+  "generated_at": "2026-05-31T20:24:21Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/solotv/manifest.json",
   "repository": {
     "id": "repository.solokodi",
@@ -35,7 +35,7 @@
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Setup",
-    "version": "0.5.6"
+    "version": "0.5.7"
   },
   "setup_favourite": "SoLoTV Setup",
   "skin": {
