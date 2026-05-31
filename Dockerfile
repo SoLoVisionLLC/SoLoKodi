@@ -11,8 +11,7 @@ COPY scripts ./scripts
 COPY src ./src
 COPY public ./public
 
-RUN python3 scripts/build_repo.py \
-    && python3 scripts/verify_repo.py
+RUN python3 scripts/build_repo.py
 
 # Build the rebranded streaming build(s) from the Diggz foundation and publish
 # our own build lists. Leave target args empty to build every configured Kodi
@@ -21,6 +20,7 @@ ARG SOLOTV_TARGETS=
 ARG SOLOKIDS_TV_TARGETS=
 RUN python3 scripts/build_solotv_build.py ${SOLOTV_TARGETS}
 RUN python3 scripts/build_solotv_build.py --profile solokids-tv ${SOLOKIDS_TV_TARGETS}
+RUN python3 scripts/verify_repo.py
 
 FROM nginx:1.27-alpine
 

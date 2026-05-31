@@ -8,3 +8,4 @@ __pycache__
 public/solotv/repo/*/
 public/repo/*/
 public/solotv/builds/*.zip
+public/solokids-tv/builds/*.zip
