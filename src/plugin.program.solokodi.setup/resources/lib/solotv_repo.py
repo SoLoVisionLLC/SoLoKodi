@@ -6,6 +6,7 @@ import xbmcvfs
 from . import build_config, build_ops
 
 WIZARD_ADDON_ID = "plugin.program.chef21"
+WIZARD_DOWNLOADER_REL = "resources/lib/modules/downloader.py"
 
 
 def streaming_repo_config(manifest=None):
@@ -101,6 +102,39 @@ def repoint_wizard_sources(manifest=None, wizard_id=WIZARD_ADDON_ID):
     return True
 
 
+def patch_wizard_downloader(wizard_id=WIZARD_ADDON_ID):
+    """Make the wizard's build downloader robust to missing Content-Length.
+
+    Upstream chef21 falls back to ``response.read(chunksize)`` when the HTTP
+    response has no Content-Length header, but a ``requests.Response`` has no
+    ``read`` method, so the install crashes with AttributeError. This happens on
+    CDN cache misses that stream the zip with chunked transfer-encoding.
+    ``response.raw.read`` is the underlying urllib3 reader and works whether or
+    not Content-Length is present.
+    """
+    if not build_ops.addon_installed(wizard_id):
+        return False
+    path = xbmcvfs.translatePath(
+        "special://home/addons/{0}/{1}".format(wizard_id, WIZARD_DOWNLOADER_REL)
+    )
+    if not xbmcvfs.exists(path):
+        return False
+
+    with xbmcvfs.File(path) as handle:
+        content = handle.read()
+
+    if "response.read(" not in content:
+        return True
+    updated = content.replace("response.read(", "response.raw.read(")
+    if updated == content:
+        return True
+
+    with xbmcvfs.File(path, "w") as handle:
+        handle.write(updated)
+    xbmc.log("SoLoTV: patched Build Wizard downloader (chunked-safe)", xbmc.LOGINFO)
+    return True
+
+
 def install_streaming_repository(manifest=None):
     config = streaming_repo_config(manifest)
     repo_id = config.get("repository_id")
@@ -143,10 +177,12 @@ def install_build_wizard(manifest=None):
     if build_ops.install_addon(wizard_id):
         rebrand_installed_wizard(wizard_id)
         repoint_wizard_sources(manifest, wizard_id)
+        patch_wizard_downloader(wizard_id)
         return True
     if build_ops.wait_for_addon(wizard_id, timeout_ms=90000):
         rebrand_installed_wizard(wizard_id)
         repoint_wizard_sources(manifest, wizard_id)
+        patch_wizard_downloader(wizard_id)
         return True
     return False
 
@@ -158,5 +194,6 @@ def launch_build_wizard(manifest=None):
         return False
     rebrand_installed_wizard(wizard_id)
     repoint_wizard_sources(manifest, wizard_id)
+    patch_wizard_downloader(wizard_id)
     xbmc.executebuiltin("RunAddon({0})".format(wizard_id))
     return True

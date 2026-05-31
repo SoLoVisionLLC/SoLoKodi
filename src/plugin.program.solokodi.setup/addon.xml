@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.5.2" provider-name="SoLoVision">
+<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.5.3" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -13,5 +13,6 @@
     <platform>all</platform>
     <license>MIT</license>
     <website>https://solokodi.sololink.cloud</website>
+    <news>v0.5.3 - Fix SoLoTV build install failing mid-download on some servers (chunked transfer / no Content-Length); patch the Build Wizard downloader to be chunked-safe.</news>
   </extension>
 </addon>

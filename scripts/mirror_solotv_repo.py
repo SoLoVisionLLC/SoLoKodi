@@ -202,13 +202,37 @@ def should_patch_zip_member(name: str) -> bool:
     return any(part in lower for part in PATCH_INSIDE_ZIP_NAMES)
 
 
+def _is_downloader_bytecode(name: str) -> bool:
+    lower = name.lower()
+    return "modules/downloader" in lower and lower.endswith(".pyc")
+
+
+def patch_wizard_downloader_code(name: str, data: bytes) -> bytes:
+    """Make chef21's build downloader robust to missing Content-Length.
+
+    Upstream falls back to ``response.read(chunksize)`` when the response has no
+    Content-Length, but a ``requests.Response`` has no ``read`` (it crashes on
+    CDN cache misses that stream with chunked transfer-encoding).
+    ``response.raw.read`` is the urllib3 reader and works in both cases.
+    """
+    if name.lower().endswith("modules/downloader.py"):
+        return data.replace(b"response.read(", b"response.raw.read(")
+    return data
+
+
 def patch_zip_contents(zip_bytes: bytes, addon_id: str) -> bytes:
     input_buffer = io.BytesIO(zip_bytes)
     output_buffer = io.BytesIO()
+    is_wizard = addon_id == "plugin.program.chef21"
     with zipfile.ZipFile(input_buffer, "r") as source:
         with zipfile.ZipFile(output_buffer, "w", zipfile.ZIP_DEFLATED) as target:
             for item in source.infolist():
+                # Drop stale downloader bytecode so our patched .py is used.
+                if is_wizard and _is_downloader_bytecode(item.filename):
+                    continue
                 data = source.read(item.filename)
+                if is_wizard:
+                    data = patch_wizard_downloader_code(item.filename, data)
                 if should_patch_zip_member(item.filename):
                     try:
                         text = data.decode("utf-8")

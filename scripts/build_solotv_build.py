@@ -25,6 +25,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 WIZARD_USERVAR = "addons/plugin.program.chef21/uservar.py"
+WIZARD_DOWNLOADER = "addons/plugin.program.chef21/resources/lib/modules/downloader.py"
 
 # Reuse the branding rules already used to rebrand the SoLoTV catalog.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -124,9 +125,11 @@ def repoint_uservar(data: bytes, wizard_sources: dict) -> bytes:
 
 
 def _skip_member(name: str) -> bool:
-    """Drop stale compiled caches of the wizard's uservar so our edit wins."""
+    """Drop stale compiled caches of patched wizard modules so our edits win."""
     lower = name.lower()
-    return "plugin.program.chef21" in lower and "uservar" in lower and lower.endswith(".pyc")
+    if "plugin.program.chef21" not in lower or not lower.endswith(".pyc"):
+        return False
+    return "uservar" in lower or "modules/downloader" in lower
 
 
 def load_overrides() -> dict[str, bytes]:
@@ -192,6 +195,10 @@ def process_source(
                 applied += 1
             elif rel == WIZARD_USERVAR:
                 data = repoint_uservar(rebrand_bytes(rel, data), wizard_sources)
+            elif rel == WIZARD_DOWNLOADER:
+                # Make the build downloader robust to missing Content-Length
+                # (CDN cache-miss streams use chunked transfer-encoding).
+                data = data.replace(b"response.read(", b"response.raw.read(")
             else:
                 data = rebrand_bytes(rel, data)
             zout.writestr(item, data)

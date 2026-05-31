@@ -54,6 +54,18 @@ update manifest.
 - [x] Build + publish K21 **and** K22 in `builds.xml`; Dockerfile default `SOLOTV_TARGETS=` builds all targets at deploy
 - [ ] Optional: deep-rebrand the Xenon skin internals (compiled `Textures.xbt`) if any branding remains
 
+### SoLoKodi Setup (v0.5.3) — Build Wizard download crash fix
+
+- [x] Root cause: chef21 `downloader.py` uses `response.read()` (a `requests.Response`
+      has no `read`) when the server omits `Content-Length` — happens on CDN cache
+      misses that stream the build zip with chunked transfer-encoding → `AttributeError`
+      mid-install
+- [x] Fix `response.read(` → `response.raw.read(` (urllib3 reader, works either way) in
+      all 3 chef21 copies: live (`solotv_repo.patch_wizard_downloader`), mirror
+      (`mirror_solotv_repo.patch_wizard_downloader_code`), bundled build zip
+      (`build_solotv_build`); stale `downloader*.pyc` dropped so the patched `.py` wins
+- [x] SoLoTV build bumped to v1.0.2 (patched bundled wizard)
+
 ### SoLoKodi Setup (v0.5.1) — SoLoTV install fix
 
 - [x] Install `repository.solotv` via `InstallAddon` from the installed SoLoKodi repo
