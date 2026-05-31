@@ -41,7 +41,7 @@ update manifest.
 - [x] v0.2.1 — remove `IsPlayable` on plugin action items (fixes “skipping unplayable item” on Discover)
 - [x] v0.2.3 — Modern Kids TV browse (2015+), IMDB TV search, relaxed torrent matching
 
-### SoLoTV Build (v1.0.1)
+### SoLoTV Build (v1.0.2)
 
 - [x] Build manifest `src/builds/solotv.json`
 - [x] `repository.solotv` — SoLo-branded repo (not `repository.diggz`)
@@ -50,10 +50,12 @@ update manifest.
 - [x] Setup wizard UI — no “Installing Diggz repository” messaging
 - [x] Profile switcher (Kids ↔ SoLoTV) in setup add-on
 - [x] Landing page at `/solotv/`
-- [x] Full CDN mirror of catalog ZIPs (`scripts/mirror_solotv_repo.py`)
+- [x] Full CDN mirror of catalog ZIPs (`scripts/mirror_solotv_repo.py`) — 58 packages, Diggz repos excluded, ZIP metadata patched
+- [ ] **Deploy** `public/solotv/repo/` (+ `repository.solotv-1.0.1.zip`) to `solokodi.sololink.cloud` (live site still serves pre-mirror `addons.xml` as of last check)
 
 ## Next Up
 
+- [ ] Deploy mirrored SoLoTV catalog to production CDN
 - [ ] Add-on icons and fanart for SoLoKodi repo branding
 - [ ] Curated YouTube playlist deep-links (kids channels by ID)
 - [ ] CI pipeline to build, verify, and deploy on push
