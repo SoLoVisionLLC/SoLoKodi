@@ -52,7 +52,7 @@ def step_favourites():
     setup = xbmcaddon.Addon()
     manifest = build_config.load_embedded_manifest()
     setup_name = manifest.get("setup_favourite") or "SoLoKodi Setup"
-    if build_config.is_diggz_build(manifest):
+    if build_config.is_streaming_build(manifest):
         profile_dir = xbmcvfs.translatePath("special://profile/")
         target = profile_dir.rstrip("/\\") + "/favourites.xml"
         if not xbmcvfs.exists(target):
@@ -91,32 +91,37 @@ def step_favourites():
     }
 
 
-def step_diggz_repo():
+def step_solotv_repo():
     manifest = build_config.load_embedded_manifest()
-    config = build_config.diggz_config(manifest)
+    config = build_config.streaming_repo_config(manifest)
     repo_id = config.get("repository_id")
     if repo_id and build_ops.addon_installed(repo_id):
-        return {"complete": True, "missing": [], "label": "Diggz repository"}
-    return {"complete": False, "missing": ["Diggz repository"], "label": "Diggz repository"}
+        return {"complete": True, "missing": [], "label": "SoLoTV repository"}
+    return {"complete": False, "missing": ["SoLoTV repository"], "label": "SoLoTV repository"}
 
 
-def step_diggz_wizard():
+def step_solotv_wizard():
     manifest = build_config.load_embedded_manifest()
-    config = build_config.diggz_config(manifest)
+    config = build_config.streaming_repo_config(manifest)
     wizard_id = config.get("wizard_addon_id")
-    label = config.get("wizard_label") or "Chef Omega Wizard"
+    label = config.get("wizard_label") or "SoLoTV Build Wizard"
     if wizard_id and build_ops.addon_installed(wizard_id):
         return {"complete": True, "missing": [], "label": label}
     return {"complete": False, "missing": [label], "label": label}
 
 
-def step_launch_diggz():
+def step_launch_wizard():
     manifest = build_config.load_embedded_manifest()
-    config = build_config.diggz_config(manifest)
+    config = build_config.streaming_repo_config(manifest)
     wizard_id = config.get("wizard_addon_id")
     if not wizard_id or not build_ops.addon_installed(wizard_id):
-        return {"complete": False, "missing": ["open Chef wizard"], "label": "Xenon interface"}
-    return {"complete": True, "missing": [], "label": "Xenon interface"}
+        return {"complete": False, "missing": ["open SoLoTV Build Wizard"], "label": "SoLoTV interface"}
+    return {"complete": True, "missing": [], "label": "SoLoTV interface"}
+
+
+step_diggz_repo = step_solotv_repo
+step_diggz_wizard = step_solotv_wizard
+step_launch_diggz = step_launch_wizard
 
 
 def step_realdebrid():
@@ -142,6 +147,9 @@ STEP_CHECKS = {
     "favourites": step_favourites,
     "realdebrid": step_realdebrid,
     "tmdb": step_tmdb,
+    "solotv_repo": step_solotv_repo,
+    "solotv_wizard": step_solotv_wizard,
+    "launch_wizard": step_launch_wizard,
     "diggz_repo": step_diggz_repo,
     "diggz_wizard": step_diggz_wizard,
     "launch_diggz": step_launch_diggz,

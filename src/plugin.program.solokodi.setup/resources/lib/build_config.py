@@ -113,13 +113,23 @@ def build_type(manifest=None):
     return manifest.get("build_type") or "kids"
 
 
+def is_streaming_build(manifest=None):
+    manifest = manifest or load_embedded_manifest()
+    return build_type(manifest) in ("streaming", "diggz")
+
+
 def is_diggz_build(manifest=None):
-    return build_type(manifest) == "diggz"
+    """Backward-compatible alias."""
+    return is_streaming_build(manifest)
+
+
+def streaming_repo_config(manifest=None):
+    manifest = manifest or load_embedded_manifest()
+    return manifest.get("streaming_repo") or manifest.get("diggz") or {}
 
 
 def diggz_config(manifest=None):
-    manifest = manifest or load_embedded_manifest()
-    return manifest.get("diggz") or {}
+    return streaming_repo_config(manifest)
 
 
 def branding(manifest=None):

@@ -1,42 +1,46 @@
 # SoLoTV Build
 
-SoLoTV is a **SoLo-branded Kodi build** based on the [Diggz repository](https://diggz1.me/diggzrepo) and **Chef Omega Wizard** (`plugin.program.chef21`). It delivers the Xenon 4K experience (movies, TV, live TV, sports, Debrid) with SoLoKodi setup, updates, and shortcuts.
+SoLoTV is a **SoLo-branded Kodi streaming build** based on the same add-on catalog as the popular Xenon stack. It does **not** install `repository.diggz` or show Diggz branding during setup.
 
-## What SoLoTV includes
+## What is cloned vs what is mirrored
 
-| Piece | Source |
-|-------|--------|
-| Diggz repository | [diggz1.me/diggzrepo](https://diggz1.me/diggzrepo) — `Diggz_Repo.zip` |
-| Build wizard | Chef Omega Wizard from `repository.diggz` |
-| Interface | Xenon 4K (Debrid or Free) — installed inside Chef wizard |
-| SoLo layer | `plugin.program.solokodi.setup` with profile `solotv` |
+| Layer | SoLoTV approach |
+|-------|-----------------|
+| **Repository add-on** | `repository.solotv` — SoLoVision branding |
+| **Catalog list** | SoLo-branded `addons.xml` hosted at `/solotv/repo/` |
+| **Add-on packages** | Downloaded from the upstream Omega mirror (same versions Xenon expects) |
+| **Build wizard** | Same engine (`plugin.program.chef21`), metadata patched after install to read **SoLoTV Build Wizard** |
+| **Interface (Xenon skin)** | Installed through the wizard; skin may still use Xenon artwork internally until we ship a forked skin ZIP |
 
-Real-Debrid and streaming addons are configured **inside the Chef / Xenon wizard**, not by SoLoKodi directly.
+We are **not** redistributing a renamed copy of every ZIP in git yet. The catalog is mirrored and rebranded at the metadata layer; packages are fetched from the upstream CDN at install time. A full offline mirror of all 60+ add-ons can be added to `scripts/mirror_solotv_repo.py` later if you want zero upstream dependency.
 
-## Install (new Kodi profile)
+## Install
 
 1. Install **repository.solokodi** from [solokodi.sololink.cloud](https://solokodi.sololink.cloud).
-2. Install **SoLoKodi Setup** from the SoLoKodi repository.
-3. Open **SoLoKodi Setup → Switch to SoLoTV** (or run with `?action=init_solotv`).
-4. Complete the **SoLoTV Setup Wizard**:
-   - Install Diggz repository
-   - Install Chef Omega Wizard
-   - Create SoLoTV favourites
-   - (Optional) Connect Real-Debrid
-   - Open Chef wizard and install **Xenon 4K**
-5. Restart Kodi when Xenon finishes.
+2. Install **SoLoKodi Setup**.
+3. **Switch to SoLoTV** and run the setup wizard.
+4. Wizard steps (all SoLo-branded in UI):
+   - Install **SoLoTV repository** (not Diggz)
+   - Install **SoLoTV Build Wizard**
+   - Create shortcuts
+   - Optional Real-Debrid
+   - Open wizard → pick Xenon 4K (Debrid or Free)
 
-## Branding
+## Build / deploy
 
-- Accent color: `#1565C0` (SoLoTV blue)
-- Favourites: **SoLoTV Setup**, **Chef Omega Wizard**
-- Setup wizard title: **SoLoTV Setup**
+```bash
+python scripts/mirror_solotv_repo.py   # SoLoTV addons.xml on public/solotv/repo/
+python scripts/build_repo.py         # ZIPs + manifests
+python scripts/verify_repo.py
+```
 
-## Manifest
+Deploy `public/` including `public/solotv/` and `public/solotv/repo/addons.xml`.
 
-- Source: `src/builds/solotv.json`
-- Hosted: `/builds/solotv/manifest.json`
+## File source for manual install
 
-## Legal note
+- URL: `https://solokodi.sololink.cloud/solotv/`
+- ZIP: `repository.solotv-1.0.0.zip`
 
-Diggz Xenon, its addons, and third-party repositories are maintained by their respective authors. SoLoTV only automates installing the official Diggz repo URL and applying SoLo branding on top.
+## Legal
+
+Upstream add-ons remain the work of their authors. SoLoTV provides branded repository metadata, setup automation, and post-install wizard renaming. Review licenses before hosting a full package mirror on your CDN.

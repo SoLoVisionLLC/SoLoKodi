@@ -274,7 +274,7 @@ def apply_theme(manifest=None, skin_id=None):
     for setting, value in skin.get("colors") or []:
         json_rpc("Settings.SetSettingValue", {"setting": setting, "value": value})
 
-    if skin.get("apply_on_setup") is False or build_config.is_diggz_build(manifest):
+    if skin.get("apply_on_setup") is False or build_config.is_streaming_build(manifest):
         return True
 
     skin_id = skin_id or build_config.selected_skin_id(manifest)
@@ -311,7 +311,7 @@ def _persist_skin_in_guisettings(skin_id):
 def theme_is_active(manifest=None):
     manifest = manifest or build_config.load_embedded_manifest()
     skin = build_config.skin_config(manifest)
-    if skin.get("apply_on_setup") is False or build_config.is_diggz_build(manifest):
+    if skin.get("apply_on_setup") is False or build_config.is_streaming_build(manifest):
         return True
     skin_id = build_config.selected_skin_id(manifest)
     return bool(skin_id and active_skin() == skin_id)

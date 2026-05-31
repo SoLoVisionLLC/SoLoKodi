@@ -22,7 +22,7 @@ def show_menu():
     summary = status.completion_summary()
     build = build_config.build_info()
     manifest = build_config.load_embedded_manifest()
-    is_solotv = build_config.is_diggz_build(manifest)
+    is_solotv = build_config.is_streaming_build(manifest)
     build_name = build.get("name", "SoLoKodi")
 
     if summary["ready"]:
@@ -61,9 +61,9 @@ def show_menu():
 
     if is_solotv:
         add_item(
-            "Open Chef Omega Wizard",
+            "Open SoLoTV Build Wizard",
             "open_chef",
-            "Install or update the Xenon 4K interface and streaming addons.",
+            "Install or update the SoLoTV interface and streaming add-ons.",
         )
     else:
         add_item(
@@ -146,13 +146,13 @@ def run():
     elif action == "change_skin":
         wizard.run_change_skin()
     elif action == "open_chef":
-        from . import diggz_ops
+        from . import solotv_repo
 
         manifest = build_config.load_embedded_manifest()
-        if not diggz_ops.launch_chef_wizard(manifest):
+        if not solotv_repo.launch_build_wizard(manifest):
             xbmcgui.Dialog().ok(
                 "SoLoTV",
-                "Chef Omega Wizard is not installed yet.\n\nRun the SoLoTV Setup Wizard first.",
+                "SoLoTV Build Wizard is not installed yet.\n\nRun the SoLoTV Setup Wizard first.",
             )
     elif action == "connect_rd":
         setup.connect_real_debrid()

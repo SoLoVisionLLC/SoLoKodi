@@ -7,7 +7,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from . import build_config, build_ops, diggz_ops, menu_layout, status
+from . import build_config, build_ops, menu_layout, solotv_repo, status
 
 
 def _wizard_heading(manifest=None):
@@ -34,9 +34,12 @@ def _step_intro(step):
     intros = {
         "realdebrid": "Connect Real-Debrid so premium cached streams work in Xenon and other addons.",
         "tmdb": "Add a free TMDb API key so the add-on can browse kids movies and TV.",
-        "diggz_repo": "Adds the official Diggz file source and installs repository.diggz from Diggz_Repo.zip.",
-        "diggz_wizard": "Installs the Chef Omega Wizard (plugin.program.chef21) from the Diggz repository.",
-        "launch_diggz": "Opens the Chef wizard so you can install Xenon 4K (Debrid or Free) and pick your skin.",
+        "solotv_repo": "Adds the SoLoTV file source and installs repository.solotv (SoLo-branded catalog).",
+        "solotv_wizard": "Installs the SoLoTV Build Wizard from the SoLoTV repository.",
+        "launch_wizard": "Opens the SoLoTV Build Wizard to install the Xenon interface and streaming add-ons.",
+        "diggz_repo": "Adds the SoLoTV file source and installs repository.solotv.",
+        "diggz_wizard": "Installs the SoLoTV Build Wizard.",
+        "launch_diggz": "Opens the SoLoTV Build Wizard to install your interface.",
     }
     required = "Required" if step.get("required", True) else "Optional"
     body = intros.get(step["id"], "Continue with this step?")
@@ -176,27 +179,27 @@ def run_setup_wizard():
             menu_ready = run_favourites_step(manifest, progress, index, total)
             detail = [] if menu_ready else ["shortcuts not configured"]
             results.append((step["label"], menu_ready, detail))
-        elif step_id == "diggz_repo":
-            progress.update(int((index / total) * 100), "Installing Diggz repository...")
-            ok = diggz_ops.install_diggz_repository(manifest)
-            results.append((step["label"], ok, [] if ok else ["Diggz repository"]))
-        elif step_id == "diggz_wizard":
-            progress.update(int((index / total) * 100), "Installing Chef Omega Wizard...")
-            ok = diggz_ops.install_chef_wizard(manifest)
-            results.append((step["label"], ok, [] if ok else ["Chef Omega Wizard"]))
-        elif step_id == "launch_diggz":
+        elif step_id in ("solotv_repo", "diggz_repo"):
+            progress.update(int((index / total) * 100), "Installing SoLoTV repository...")
+            ok = solotv_repo.install_streaming_repository(manifest)
+            results.append((step["label"], ok, [] if ok else ["SoLoTV repository"]))
+        elif step_id in ("solotv_wizard", "diggz_wizard"):
+            progress.update(int((index / total) * 100), "Installing SoLoTV Build Wizard...")
+            ok = solotv_repo.install_build_wizard(manifest)
+            results.append((step["label"], ok, [] if ok else ["SoLoTV Build Wizard"]))
+        elif step_id in ("launch_wizard", "launch_diggz"):
             progress.close()
-            config = build_config.diggz_config(manifest)
+            config = build_config.streaming_repo_config(manifest)
             hint = config.get("recommended_build_hint", "")
             if _step_intro(step):
-                ok = diggz_ops.launch_chef_wizard(manifest)
+                ok = solotv_repo.launch_build_wizard(manifest)
                 if ok and hint:
                     xbmcgui.Dialog().ok(
                         heading,
-                        "Chef Omega Wizard is open.\n\n{0}\n\n"
-                        "When Xenon finishes installing, restart Kodi.".format(hint),
+                        "SoLoTV Build Wizard is open.\n\n{0}\n\n"
+                        "When the interface finishes installing, restart Kodi.".format(hint),
                     )
-                results.append((step["label"], ok, [] if ok else ["Chef wizard not installed"]))
+                results.append((step["label"], ok, [] if ok else ["SoLoTV Build Wizard"]))
             else:
                 results.append((step["label"], False, ["skipped"]))
             progress = _progress(heading, "Continuing...")
@@ -229,8 +232,8 @@ def run_setup_wizard():
         if detail:
             lines.append("  - " + ", ".join(detail))
     lines.append("")
-    if build_config.is_diggz_build(manifest):
-        lines.append("Open Chef Omega Wizard from favourites to finish Xenon setup.")
+    if build_config.is_streaming_build(manifest):
+        lines.append("Open SoLoTV Build Wizard from favourites to finish the interface setup.")
     else:
         lines.append("Restart Kodi if the new skin is not visible yet.")
     xbmcgui.Dialog().ok(heading, "\n".join(lines))
@@ -238,13 +241,13 @@ def run_setup_wizard():
 
 def run_change_skin():
     manifest = build_config.load_embedded_manifest()
-    if build_config.is_diggz_build(manifest):
+    if build_config.is_streaming_build(manifest):
         xbmcgui.Dialog().ok(
             _wizard_heading(manifest),
-            "SoLoTV uses the Xenon skin from Chef Omega Wizard.\n\n"
-            "Open Chef Omega Wizard to change skins or rebuild Xenon.",
+            "SoLoTV uses the Xenon interface from the SoLoTV Build Wizard.\n\n"
+            "Open SoLoTV Build Wizard to change skins or rebuild.",
         )
-        diggz_ops.launch_chef_wizard(manifest)
+        solotv_repo.launch_build_wizard(manifest)
         return
     skin_id = choose_skin(manifest)
     if not skin_id:
@@ -280,11 +283,11 @@ def run_quick_repair():
     manifest = build_config.load_embedded_manifest()
     build = build_config.build_info(manifest)
     progress = _progress("Repair Build", "Re-syncing {0}...".format(build.get("name", "build")))
-    if build_config.is_diggz_build(manifest):
-        progress.update(20, "Checking Diggz repository...")
-        diggz_ops.install_diggz_repository(manifest)
-        progress.update(45, "Checking Chef Omega Wizard...")
-        diggz_ops.install_chef_wizard(manifest)
+    if build_config.is_streaming_build(manifest):
+        progress.update(20, "Checking SoLoTV repository...")
+        solotv_repo.install_streaming_repository(manifest)
+        progress.update(45, "Checking SoLoTV Build Wizard...")
+        solotv_repo.install_build_wizard(manifest)
         progress.update(70, "Refreshing SoLoTV shortcuts...")
         build_ops.apply_theme(manifest)
         build_ops.write_favourites(manifest)

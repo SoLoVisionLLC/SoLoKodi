@@ -4,6 +4,8 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
+import sys
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -93,6 +95,7 @@ def generate_build_manifest(build_path: Path, addon_dirs: list[Path]) -> dict:
     for optional_key in (
         "build_type",
         "branding",
+        "streaming_repo",
         "diggz",
         "favourites",
         "setup_favourite",
@@ -133,7 +136,19 @@ def write_build_manifests(build_path: Path, manifest: dict) -> None:
     embedded_path.write_text(payload, encoding="utf-8")
 
 
+def publish_solotv_repository_zip(repo_id: str, repo_version: str) -> None:
+    solotv_dir = PUBLIC / "solotv"
+    solotv_dir.mkdir(parents=True, exist_ok=True)
+    source = REPO / repo_id / f"{repo_id}-{repo_version}.zip"
+    if source.exists():
+        shutil.copy2(source, solotv_dir / source.name)
+
+
 def main() -> int:
+    mirror_script = ROOT / "scripts" / "mirror_solotv_repo.py"
+    if mirror_script.exists():
+        subprocess.run([sys.executable, str(mirror_script)], check=True)
+
     REPO.mkdir(parents=True, exist_ok=True)
     addon_dirs = [path for path in SRC.iterdir() if (path / "addon.xml").exists()]
     if not addon_dirs:
@@ -160,12 +175,18 @@ def main() -> int:
             )
         )
 
-    repo_dir = SRC / "repository.solokodi"
-    repo_id, repo_version, _repo_name = addon_metadata(repo_dir)
-    repo_zip = REPO / repo_id / f"{repo_id}-{repo_version}.zip"
-    public_repo_dir = PUBLIC / "solokodi"
-    public_repo_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(repo_zip, public_repo_dir / repo_zip.name)
+    for repo_name in ("repository.solokodi", "repository.solotv"):
+        repo_dir = SRC / repo_name
+        if not repo_dir.exists():
+            continue
+        repo_id, repo_version, _repo_name = addon_metadata(repo_dir)
+        repo_zip = REPO / repo_id / f"{repo_id}-{repo_version}.zip"
+        if repo_name == "repository.solokodi":
+            public_repo_dir = PUBLIC / "solokodi"
+            public_repo_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(repo_zip, public_repo_dir / repo_zip.name)
+        if repo_name == "repository.solotv":
+            publish_solotv_repository_zip(repo_id, repo_version)
     legacy_root_zip = PUBLIC / repo_zip.name
     if legacy_root_zip.exists():
         legacy_root_zip.unlink()

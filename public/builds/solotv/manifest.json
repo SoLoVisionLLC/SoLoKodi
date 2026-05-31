@@ -4,22 +4,13 @@
     "tagline": "Stream everything. SoLo simple."
   },
   "build": {
-    "description": "SoLo-branded streaming build powered by the Diggz Xenon ecosystem \u2014 movies, TV, live channels, and Debrid-ready addons.",
+    "description": "SoLo-branded streaming build \u2014 movies, TV, live channels, and Real-Debrid-ready add-ons via the SoLoTV repository.",
     "id": "solotv",
     "name": "SoLoTV",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
-  "build_type": "diggz",
+  "build_type": "streaming",
   "content_addons": [],
-  "diggz": {
-    "file_source_name": "diggzrepo",
-    "file_source_url": "https://diggz1.me/diggzrepo",
-    "recommended_build_hint": "Choose Xenon 4K (Debrid) or Xenon 4K Free in the Chef wizard.",
-    "repository_id": "repository.diggz",
-    "repository_zip": "Diggz_Repo.zip",
-    "wizard_addon_id": "plugin.program.chef21",
-    "wizard_label": "Chef Omega Wizard"
-  },
   "favourites": [
     {
       "action": "RunAddon(plugin.program.solokodi.setup)",
@@ -27,10 +18,10 @@
     },
     {
       "action": "RunAddon(plugin.program.chef21)",
-      "name": "Chef Omega Wizard"
+      "name": "SoLoTV Build Wizard"
     }
   ],
-  "generated_at": "2026-05-31T10:28:43Z",
+  "generated_at": "2026-05-31T10:47:16Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/solotv/manifest.json",
   "repository": {
     "id": "repository.solokodi",
@@ -42,7 +33,7 @@
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Setup",
-    "version": "0.4.0"
+    "version": "0.4.1"
   },
   "setup_favourite": "SoLoTV Setup",
   "skin": {
@@ -56,16 +47,25 @@
     "default_id": "skin.estuary"
   },
   "solokodi_addons": [],
+  "streaming_repo": {
+    "file_source_name": "solotv",
+    "file_source_url": "https://solokodi.sololink.cloud/solotv/",
+    "recommended_build_hint": "In the SoLoTV wizard, choose Xenon 4K (Debrid) or Xenon 4K Free for the full interface.",
+    "repository_id": "repository.solotv",
+    "repository_zip": "repository.solotv-1.0.0.zip",
+    "wizard_addon_id": "plugin.program.chef21",
+    "wizard_label": "SoLoTV Build Wizard"
+  },
   "website": "https://solokodi.sololink.cloud/solotv/",
   "wizard_steps": [
     {
-      "id": "diggz_repo",
-      "label": "Install Diggz repository",
+      "id": "solotv_repo",
+      "label": "Install SoLoTV repository",
       "required": true
     },
     {
-      "id": "diggz_wizard",
-      "label": "Install Chef Omega Wizard",
+      "id": "solotv_wizard",
+      "label": "Install SoLoTV Build Wizard",
       "required": true
     },
     {
@@ -79,8 +79,8 @@
       "required": false
     },
     {
-      "id": "launch_diggz",
-      "label": "Install Xenon interface",
+      "id": "launch_wizard",
+      "label": "Install SoLoTV interface",
       "required": true
     }
   ]
