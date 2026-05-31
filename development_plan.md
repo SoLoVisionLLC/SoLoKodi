@@ -51,11 +51,10 @@ update manifest.
 - [x] Profile switcher (Kids ↔ SoLoTV) in setup add-on
 - [x] Landing page at `/solotv/`
 - [x] Full CDN mirror of catalog ZIPs (`scripts/mirror_solotv_repo.py`) — 58 packages, Diggz repos excluded, ZIP metadata patched
-- [ ] **Deploy** `public/solotv/repo/` (+ `repository.solotv-1.0.1.zip`) to `solokodi.sololink.cloud` (live site still serves pre-mirror `addons.xml` as of last check)
+- [x] Docker build runs full SoLoTV mirror (Coolify deploy on `git push`)
+- [ ] **Push** latest `main` and confirm Coolify build succeeds (live CDN may still be pre-mirror until redeploy)
 
 ## Next Up
-
-- [ ] Deploy mirrored SoLoTV catalog to production CDN
 - [ ] Add-on icons and fanart for SoLoKodi repo branding
 - [ ] Curated YouTube playlist deep-links (kids channels by ID)
 - [ ] CI pipeline to build, verify, and deploy on push

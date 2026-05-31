@@ -1,28 +1,25 @@
-# Upload the built public/ tree to solokodi.sololink.cloud.
-# Set $DeployTarget to your host sync command (rsync, scp, rclone, etc.).
+# SoLoKodi is deployed via Coolify from this Git repo (Dockerfile).
+# Push to the branch Coolify watches (usually main); the image build runs:
+#   mirror_solotv_repo.py -> build_repo.py -> verify_repo.py
 #
-# Example (adjust user@host and remote path):
-#   $DeployTarget = "rsync -avz --delete ./public/ user@sololink:/var/www/solokodi/"
-#
-# After deploy, verify:
-#   curl -s https://solokodi.sololink.cloud/solotv/repo/addons.xml | findstr repository.diggz
-#   (should return nothing)
-#   curl -I https://solokodi.sololink.cloud/solotv/repo/plugin.program.chef21/plugin.program.chef21-502.zip
-#   (should be HTTP 200)
+# Manual override only if you host outside Coolify:
+#   $env:SOLOKODI_DEPLOY_CMD = 'rsync -avz --delete ./ user@host:/var/www/solokodi/public/'
+#   .\scripts\deploy_public.ps1
 
 param(
     [string]$DeployTarget = $env:SOLOKODI_DEPLOY_CMD
 )
 
 $Root = Split-Path $PSScriptRoot -Parent
+
 if (-not $DeployTarget) {
-    Write-Host "Set SOLOKODI_DEPLOY_CMD or edit scripts/deploy_public.ps1 with your rsync/scp command."
-    Write-Host "Local mirror is ready under: $Root\public\solotv\repo\"
-    Write-Host "Run: python scripts/mirror_solotv_repo.py ; python scripts/build_repo.py"
-    exit 1
+    Write-Host "Coolify deploy: commit and push to GitHub; Coolify rebuilds from Dockerfile."
+    Write-Host "Local test: docker build -t solokodi `"$Root`" ; docker run --rm -p 8080:80 solokodi"
+    Write-Host "Local mirror only: python scripts/build_repo.py"
+    exit 0
 }
 
 Push-Location (Join-Path $Root "public")
 Invoke-Expression $DeployTarget
 Pop-Location
-Write-Host "Deploy command finished. Verify solotv/repo/addons.xml on the CDN."
+Write-Host "Manual deploy finished."

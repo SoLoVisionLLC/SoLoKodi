@@ -20,7 +20,31 @@ python scripts/mirror_solotv_repo.py --force  # re-download everything
 python scripts/mirror_solotv_repo.py --xml-only  # catalog XML only
 ```
 
-Mirrored ZIPs are gitignored (large). Deploy the entire `public/solotv/repo/` folder to your web host.
+Mirrored ZIPs are gitignored (large). They are **not** pushed to GitHub; they are created during the Docker image build (see below).
+
+## Deploy (Coolify)
+
+This site is served from the repo **Dockerfile** (`nginx` + `public/`). Coolify redeploys when you push to the connected branch (typically `main`).
+
+On each build, Docker runs:
+
+1. `python scripts/mirror_solotv_repo.py` — download and rebrand ~58 catalog ZIPs
+2. `python scripts/build_repo.py` — SoLoKodi repo ZIPs, manifests, `repository.solotv` zip
+3. `python scripts/verify_repo.py`
+
+The first deploy after a catalog change can take a few minutes while ZIPs download. You do **not** need to rsync `public/` by hand unless you bypass Coolify.
+
+**Push to deploy:** commit source changes → `git push` → wait for Coolify build → verify:
+
+```bash
+curl -s https://solokodi.sololink.cloud/solotv/repo/addons.xml | grep repository.diggz
+# (no output = good)
+
+curl -I https://solokodi.sololink.cloud/solotv/repo/plugin.program.chef21/plugin.program.chef21-502.zip
+# HTTP 200
+```
+
+Local dev without Coolify: `docker build -t solokodi .` then `docker run --rm -p 8080:80 solokodi`.
 
 ## Install
 
@@ -34,15 +58,15 @@ Mirrored ZIPs are gitignored (large). Deploy the entire `public/solotv/repo/` fo
    - Optional Real-Debrid
    - Open wizard → pick Xenon 4K (Debrid or Free)
 
-## Build / deploy
+## Build locally (optional)
 
 ```bash
-python scripts/mirror_solotv_repo.py   # SoLoTV addons.xml on public/solotv/repo/
+python scripts/mirror_solotv_repo.py   # SoLoTV addons.xml + ZIPs
 python scripts/build_repo.py         # ZIPs + manifests
 python scripts/verify_repo.py
 ```
 
-Deploy `public/` including `public/solotv/` and `public/solotv/repo/addons.xml`.
+Production: push to GitHub and let Coolify run the same steps inside Docker.
 
 ## File source for manual install
 

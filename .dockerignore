@@ -3,3 +3,7 @@ work
 outputs
 __pycache__
 *.pyc
+
+# Generated at docker build (see Dockerfile); keep context small
+public/solotv/repo/*/
+public/repo/*/

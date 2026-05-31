@@ -45,14 +45,18 @@ Open **SoLoKodi Kids Setup** in Kodi:
 2. **Check for Updates** / **Update Build Now** — stay on the latest release
 3. **Repair Build** — refresh add-ons and shortcuts without losing settings
 
+## Deploy (Coolify)
+
+Push to the Git branch connected in Coolify. The **Dockerfile** builds the site: it mirrors the SoLoTV catalog, packages add-ons, then serves `public/` with nginx. Mirrored ZIPs stay out of git (see `.gitignore`).
+
 ## Local Preview
 
 ```bash
-docker build -t solokodi-kids .
-docker run --rm -p 8080:80 solokodi-kids
+docker build -t solokodi .
+docker run --rm -p 8080:80 solokodi
 ```
 
-Open `http://localhost:8080`.
+Open `http://localhost:8080` (first build may take a few minutes while catalog ZIPs download).
 
 ## Optional Real-Debrid
 

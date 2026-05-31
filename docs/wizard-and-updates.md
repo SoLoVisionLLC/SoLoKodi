@@ -61,7 +61,7 @@ available.
    python3 scripts/build_repo.py
    python3 scripts/verify_repo.py
    ```
-4. Deploy the `public/` folder to `solokodi.sololink.cloud`
+4. Push to GitHub — Coolify rebuilds the Docker image (mirrors SoLoTV catalog + serves `public/`)
 5. Users tap **Update Build Now** in Kodi (or get the daily notification)
 
 ### Version numbers
