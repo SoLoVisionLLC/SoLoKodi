@@ -5,7 +5,7 @@ import urllib.request
 
 import xbmcaddon
 
-from .constants import TMDB_API_ROOT, TMDB_IMAGE_ROOT
+from .constants import HTTP_HEADERS, TMDB_API_ROOT, TMDB_IMAGE_ROOT
 
 
 class TmdbError(Exception):
@@ -26,7 +26,7 @@ class TmdbClient:
         query = dict(params or {})
         query["api_key"] = self.api_key()
         url = TMDB_API_ROOT + path + "?" + urllib.parse.urlencode(query)
-        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        req = urllib.request.Request(url, headers=HTTP_HEADERS)
         try:
             with urllib.request.urlopen(req, timeout=20) as response:
                 return json.loads(response.read().decode("utf-8"))

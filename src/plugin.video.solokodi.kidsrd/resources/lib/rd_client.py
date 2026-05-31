@@ -6,7 +6,7 @@ import urllib.request
 
 import xbmcaddon
 
-from .constants import RD_API_ROOT, RD_TOKEN_URL, SETUP_ADDON_ID
+from .constants import HTTP_HEADERS, RD_API_ROOT, RD_TOKEN_URL, SETUP_ADDON_ID
 
 
 class RealDebridError(Exception):
@@ -21,7 +21,10 @@ def _request_json(url, data=None, headers=None, method=None):
     body = None
     if data is not None:
         body = urllib.parse.urlencode(data).encode("utf-8")
-    req = urllib.request.Request(url, data=body, headers=headers or {}, method=method)
+    merged_headers = dict(HTTP_HEADERS)
+    if headers:
+        merged_headers.update(headers)
+    req = urllib.request.Request(url, data=body, headers=merged_headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=30) as response:
             raw = response.read().decode("utf-8")

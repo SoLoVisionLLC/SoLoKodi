@@ -1,4 +1,13 @@
 SETUP_ADDON_ID = "plugin.program.solokodi.setup"
+HTTP_HEADERS = {
+    "Accept": "application/json",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+}
 RD_API_ROOT = "https://api.real-debrid.com/rest/1.0"
 RD_TOKEN_URL = "https://api.real-debrid.com/oauth/v2/token"
 TMDB_API_ROOT = "https://api.themoviedb.org/3"
@@ -11,7 +20,6 @@ YTS_API_ROOTS = (
 YTS_API_ROOT = YTS_API_ROOTS[0]
 APIBAY_API_ROOTS = (
     "https://apibay.org/q.php",
-    "https://thepiratebay.org/q.php",
 )
 APIBAY_API_ROOT = APIBAY_API_ROOTS[0]
 

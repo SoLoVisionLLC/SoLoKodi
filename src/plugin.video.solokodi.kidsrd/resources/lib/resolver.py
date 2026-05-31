@@ -4,7 +4,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from .constants import APIBAY_API_ROOTS, YTS_API_ROOTS
+from .constants import APIBAY_API_ROOTS, HTTP_HEADERS, YTS_API_ROOTS
 from .kids_filter import normalize_title
 
 
@@ -13,7 +13,7 @@ class ResolverError(Exception):
 
 
 def _request_json(url):
-    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+    req = urllib.request.Request(url, headers=HTTP_HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=20) as response:
             return json.loads(response.read().decode("utf-8"))
@@ -198,7 +198,13 @@ def find_movie_magnet(title, year=None, imdb_id=None):
     if fallback:
         return fallback
 
-    detail = errors[0] if errors else "No torrent source found."
+    detail = errors[-1] if errors else "No torrent source found."
+    if any("403" in item for item in errors):
+        detail = (
+            "Torrent lookup sites blocked this request. "
+            "Try My Kids Library for titles already on Real-Debrid, "
+            "or add the movie at real-debrid.com first."
+        )
     raise ResolverError("No torrent source found for {0}. {1}".format(title, detail))
 
 
