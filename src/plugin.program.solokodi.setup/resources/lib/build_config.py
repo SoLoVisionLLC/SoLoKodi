@@ -5,7 +5,7 @@ import xbmcaddon
 import xbmcvfs
 
 DEFAULT_PROFILE = "kids"
-BUILD_PROFILES = ("kids", "solotv")
+BUILD_PROFILES = ("kids", "solotv", "solokids-tv")
 
 
 def addon():
@@ -57,6 +57,11 @@ def content_addons(manifest=None):
 def solokodi_addons(manifest=None):
     manifest = manifest or load_embedded_manifest()
     return manifest.get("solokodi_addons") or []
+
+
+def family_trakt_lists(manifest=None):
+    manifest = manifest or load_embedded_manifest()
+    return manifest.get("family_trakt_lists") or []
 
 
 def all_addons(manifest=None):

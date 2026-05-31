@@ -53,17 +53,18 @@ def step_favourites():
     manifest = build_config.load_embedded_manifest()
     setup_name = manifest.get("setup_favourite") or "SoLoKodi Setup"
     if build_config.is_streaming_build(manifest):
+        build = build_config.build_info(manifest)
         profile_dir = xbmcvfs.translatePath("special://profile/")
         target = profile_dir.rstrip("/\\") + "/favourites.xml"
         if not xbmcvfs.exists(target):
-            return {"complete": False, "missing": ["shortcuts"], "label": "SoLoTV shortcuts"}
+            return {"complete": False, "missing": ["shortcuts"], "label": "{0} shortcuts".format(build.get("name", "Streaming"))}
         with xbmcvfs.File(target) as handle:
             content = handle.read()
         shortcuts_ok = setup_name in content
         return {
             "complete": shortcuts_ok,
             "missing": [] if shortcuts_ok else ["shortcuts"],
-            "label": "SoLoTV shortcuts",
+            "label": "{0} shortcuts".format(build.get("name", "Streaming")),
         }
 
     if setup.getSetting("setup_complete") == "true" and menu_layout.menu_files_present(manifest):
@@ -95,9 +96,10 @@ def step_solotv_repo():
     manifest = build_config.load_embedded_manifest()
     config = build_config.streaming_repo_config(manifest)
     repo_id = config.get("repository_id")
+    label = config.get("repository_label") or repo_id or "streaming repository"
     if repo_id and build_ops.addon_installed(repo_id):
-        return {"complete": True, "missing": [], "label": "SoLoTV repository"}
-    return {"complete": False, "missing": ["SoLoTV repository"], "label": "SoLoTV repository"}
+        return {"complete": True, "missing": [], "label": label}
+    return {"complete": False, "missing": [label], "label": label}
 
 
 def step_solotv_wizard():
@@ -114,9 +116,11 @@ def step_launch_wizard():
     manifest = build_config.load_embedded_manifest()
     config = build_config.streaming_repo_config(manifest)
     wizard_id = config.get("wizard_addon_id")
+    build = build_config.build_info(manifest)
+    label = "{0} interface".format(build.get("name", "Streaming"))
     if not wizard_id or not build_ops.addon_installed(wizard_id):
-        return {"complete": False, "missing": ["open SoLoTV Build Wizard"], "label": "SoLoTV interface"}
-    return {"complete": True, "missing": [], "label": "SoLoTV interface"}
+        return {"complete": False, "missing": ["open {0}".format(config.get("wizard_label") or "Build Wizard")], "label": label}
+    return {"complete": True, "missing": [], "label": label}
 
 
 def step_realdebrid():
@@ -125,13 +129,20 @@ def step_realdebrid():
     return {"complete": complete, "missing": [] if complete else ["Real-Debrid"], "label": "Real-Debrid"}
 
 
+def step_trakt():
+    setup = xbmcaddon.Addon()
+    complete = bool(setup.getSetting("trakt_api_token"))
+    return {"complete": complete, "missing": [] if complete else ["Trakt API token"], "label": "Trakt API token"}
+
+
 def step_tmdb():
-    complete = False
+    setup = xbmcaddon.Addon()
+    complete = bool(setup.getSetting("tmdb_api_key"))
     try:
         kidsrd = xbmcaddon.Addon("plugin.video.solokodi.kidsrd")
-        complete = bool(kidsrd.getSetting("tmdb_api_key"))
+        complete = complete or bool(kidsrd.getSetting("tmdb_api_key"))
     except RuntimeError:
-        complete = False
+        pass
     return {"complete": complete, "missing": [] if complete else ["TMDb API key"], "label": "TMDb API key"}
 
 
@@ -141,6 +152,7 @@ STEP_CHECKS = {
     "theme": step_theme,
     "favourites": step_favourites,
     "realdebrid": step_realdebrid,
+    "trakt": step_trakt,
     "tmdb": step_tmdb,
     "solotv_repo": step_solotv_repo,
     "solotv_wizard": step_solotv_wizard,

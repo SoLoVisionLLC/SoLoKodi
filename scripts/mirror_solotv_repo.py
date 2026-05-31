@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "src" / "solotv_build" / "build.json"
 PUBLIC_SOLOTV_REPO = ROOT / "public" / "solotv" / "repo"
 SOLOTV_WIZARD_VERSION = "502.1"
+SOLOKODI_SETUP_ADDON = "plugin.program.solokodi.setup"
 UPSTREAM_ADDONS_XML = (
     "https://raw.githubusercontent.com/nebulous42069/Omega/main/omega/zips/addons.xml"
 )
@@ -385,16 +386,29 @@ def patch_wizard_uservar_code(
     data: bytes,
     wizard_sources: dict[str, str],
 ) -> bytes:
-    if not wizard_sources or not name.lower().endswith("/uservar.py"):
+    if not name.lower().endswith("/uservar.py"):
         return data
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError:
         return data
 
-    for var_name, url in wizard_sources.items():
+    for var_name, url in (wizard_sources.items() if wizard_sources else ()):
         pattern = r"(?m)^(\s*{0}\s*=\s*).*$".format(re.escape(var_name))
         text = re.sub(pattern, r"\g<1>'{0}'".format(url), text, count=1)
+    if SOLOKODI_SETUP_ADDON not in text:
+        text = re.sub(
+            r"(?m)^(\s*excludes\s*=\s*\[)([^\]]*)(\].*)$",
+            lambda match: "{0}{1}{2}'{3}'{4}".format(
+                match.group(1),
+                match.group(2),
+                ", " if match.group(2).strip() else "",
+                SOLOKODI_SETUP_ADDON,
+                match.group(3),
+            ),
+            text,
+            count=1,
+        )
     return text.encode("utf-8")
 
 

@@ -8,6 +8,7 @@ from . import build_config, build_ops
 WIZARD_ADDON_ID = "plugin.program.chef21"
 WIZARD_DOWNLOADER_REL = "resources/lib/modules/downloader.py"
 WIZARD_BUILD_INSTALL_REL = "resources/lib/modules/build_install.py"
+SOLOKODI_SETUP_ADDON = "plugin.program.solokodi.setup"
 
 PATCHED_WIZARD_DOWNLOADER = r'''import os
 import sys
@@ -121,8 +122,18 @@ def streaming_repo_config(manifest=None):
     return manifest.get("streaming_repo") or manifest.get("diggz") or {}
 
 
-def rebrand_installed_wizard(wizard_id=WIZARD_ADDON_ID):
-    """Patch installed wizard add-on metadata so Kodi shows SoLoTV, not Diggz."""
+def _streaming_labels(manifest=None):
+    manifest = manifest or build_config.load_embedded_manifest()
+    build = build_config.build_info(manifest)
+    config = streaming_repo_config(manifest)
+    build_name = build.get("name") or "SoLoTV"
+    wizard_label = config.get("wizard_label") or "{0} Build Wizard".format(build_name)
+    repository_label = config.get("repository_label") or config.get("repository_id") or "streaming repository"
+    return build_name, wizard_label, repository_label
+
+
+def rebrand_installed_wizard(manifest=None, wizard_id=WIZARD_ADDON_ID):
+    """Patch installed wizard add-on metadata so Kodi shows the active brand."""
     if not build_ops.addon_installed(wizard_id):
         return False
 
@@ -133,19 +144,20 @@ def rebrand_installed_wizard(wizard_id=WIZARD_ADDON_ID):
     with xbmcvfs.File(addon_path) as handle:
         content = handle.read()
 
+    build_name, wizard_label, _repository_label = _streaming_labels(manifest)
     updated = content
-    updated = re.sub(r'name="[^"]*"', 'name="SoLoTV Build Wizard"', updated, count=1)
-    updated = updated.replace("Diggz", "SoLoTV")
+    updated = re.sub(r'name="[^"]*"', 'name="{0}"'.format(wizard_label), updated, count=1)
+    updated = updated.replace("Diggz", build_name)
     updated = re.sub(
         r"(<summary[^>]*>)(.*?)(</summary>)",
-        r"\1Install and update the SoLoTV interface (movies, TV, live TV).\3",
+        r"\1Install and update the {0} streaming interface.\3".format(build_name),
         updated,
         count=1,
         flags=re.S | re.I,
     )
     updated = re.sub(
         r"(<description[^>]*>)(.*?)(</description>)",
-        r"\1SoLoTV build wizard from SoLoVision. Choose your interface and streaming add-ons.\3",
+        r"\1{0} build wizard from SoLoVision. Choose your interface and streaming add-ons.\3".format(build_name),
         updated,
         count=1,
         flags=re.S | re.I,
@@ -157,7 +169,7 @@ def rebrand_installed_wizard(wizard_id=WIZARD_ADDON_ID):
 
     with xbmcvfs.File(addon_path, "w") as handle:
         handle.write(updated)
-    xbmc.log("SoLoTV: rebranded installed wizard metadata", xbmc.LOGINFO)
+    xbmc.log("{0}: rebranded installed wizard metadata".format(build_name), xbmc.LOGINFO)
     return True
 
 
@@ -199,13 +211,27 @@ def repoint_wizard_sources(manifest=None, wizard_id=WIZARD_ADDON_ID):
                 "SoLoTV: could not repoint wizard var {0}".format(var_name),
                 xbmc.LOGWARNING,
             )
+    if SOLOKODI_SETUP_ADDON not in updated:
+        updated = re.sub(
+            r"(?m)^(\s*excludes\s*=\s*\[)([^\]]*)(\].*)$",
+            lambda match: "{0}{1}{2}'{3}'{4}".format(
+                match.group(1),
+                match.group(2),
+                ", " if match.group(2).strip() else "",
+                SOLOKODI_SETUP_ADDON,
+                match.group(3),
+            ),
+            updated,
+            count=1,
+        )
 
     if updated == content:
         return True
 
     with xbmcvfs.File(uservar_path, "w") as handle:
         handle.write(updated)
-    xbmc.log("SoLoTV: repointed Build Wizard sources to SoLoVision", xbmc.LOGINFO)
+    build_name, _wizard_label, _repository_label = _streaming_labels(manifest)
+    xbmc.log("{0}: repointed Build Wizard sources to SoLoVision".format(build_name), xbmc.LOGINFO)
     return True
 
 
@@ -227,7 +253,8 @@ def patch_wizard_downloader(wizard_id=WIZARD_ADDON_ID):
 
     with xbmcvfs.File(path, "w") as handle:
         handle.write(PATCHED_WIZARD_DOWNLOADER)
-    xbmc.log("SoLoTV: patched Build Wizard downloader", xbmc.LOGINFO)
+    build_name, _wizard_label, _repository_label = _streaming_labels()
+    xbmc.log("{0}: patched Build Wizard downloader".format(build_name), xbmc.LOGINFO)
     return True
 
 
@@ -267,7 +294,8 @@ def patch_wizard_build_install(wizard_id=WIZARD_ADDON_ID):
 
     with xbmcvfs.File(path, "w") as handle:
         handle.write(updated)
-    xbmc.log("SoLoTV: patched Build Wizard install validation", xbmc.LOGINFO)
+    build_name, _wizard_label, _repository_label = _streaming_labels()
+    xbmc.log("{0}: patched Build Wizard install validation".format(build_name), xbmc.LOGINFO)
     return True
 
 
@@ -275,7 +303,7 @@ def install_streaming_repository(manifest=None):
     config = streaming_repo_config(manifest)
     repo_id = config.get("repository_id")
     if not repo_id:
-        xbmc.log("SoLoTV: streaming repository id is missing", xbmc.LOGERROR)
+        xbmc.log("SoLoKodi: streaming repository id is missing", xbmc.LOGERROR)
         return False
     if build_ops.addon_installed(repo_id):
         return True
@@ -285,13 +313,14 @@ def install_streaming_repository(manifest=None):
     # the "Unknown sources" prompt entirely.
     build_ops.refresh_addon_repositories()
     if build_ops.install_addon(repo_id) or build_ops.wait_for_addon(repo_id, timeout_ms=60000):
-        xbmc.log("SoLoTV: installed {0} from SoLoKodi repository".format(repo_id), xbmc.LOGINFO)
+        build_name, _wizard_label, _repository_label = _streaming_labels(manifest)
+        xbmc.log("{0}: installed {1} from SoLoKodi repository".format(build_name, repo_id), xbmc.LOGINFO)
         return True
 
     # Fallback: install from the hosted repository zip / file source.
     zip_name = config.get("repository_zip")
     if not zip_name:
-        xbmc.log("SoLoTV: no repository zip fallback configured", xbmc.LOGERROR)
+        xbmc.log("SoLoKodi: no repository zip fallback configured", xbmc.LOGERROR)
         return False
     option = {
         "repository_id": repo_id,
@@ -311,13 +340,13 @@ def install_build_wizard(manifest=None):
         return False
     build_ops.refresh_addon_repositories()
     if build_ops.install_addon(wizard_id):
-        rebrand_installed_wizard(wizard_id)
+        rebrand_installed_wizard(manifest, wizard_id)
         repoint_wizard_sources(manifest, wizard_id)
         patch_wizard_downloader(wizard_id)
         patch_wizard_build_install(wizard_id)
         return True
     if build_ops.wait_for_addon(wizard_id, timeout_ms=90000):
-        rebrand_installed_wizard(wizard_id)
+        rebrand_installed_wizard(manifest, wizard_id)
         repoint_wizard_sources(manifest, wizard_id)
         patch_wizard_downloader(wizard_id)
         patch_wizard_build_install(wizard_id)
@@ -330,7 +359,7 @@ def launch_build_wizard(manifest=None):
     wizard_id = config.get("wizard_addon_id") or WIZARD_ADDON_ID
     if not wizard_id or not build_ops.addon_installed(wizard_id):
         return False
-    rebrand_installed_wizard(wizard_id)
+    rebrand_installed_wizard(manifest, wizard_id)
     repoint_wizard_sources(manifest, wizard_id)
     patch_wizard_downloader(wizard_id)
     patch_wizard_build_install(wizard_id)

@@ -94,7 +94,7 @@ def group_xml(manifest: dict, group: str, fallback: str) -> str:
     lines = ["<?xml version='1.0' encoding='UTF-8'?>", "<shortcuts>"]
     for entry in entries(manifest, group):
         label = entry.get("favourite") or entry["label"]
-        action = f"ActivateWindow(Videos,plugin://{entry['id']}/,return)"
+        action = entry.get("action") or f"ActivateWindow(Videos,plugin://{entry['id']}/,return)"
         lines.append(shortcut(label, slug(entry["id"]), action, ICONS.get(group, "DefaultAddonVideo.png")))
     if len(lines) == 2:
         lines.append(
@@ -107,7 +107,7 @@ def group_xml(manifest: dict, group: str, fallback: str) -> str:
 def mainmenu_xml() -> str:
     lines = ["<?xml version='1.0' encoding='UTF-8'?>", "<shortcuts>"]
     for item in MAINMENU_ITEMS:
-        action = f"ActivateWindow(Videos,plugin://{item['addon_id']}/,return)"
+        action = item.get("action") or f"ActivateWindow(Videos,plugin://{item['addon_id']}/,return)"
         lines.append(shortcut(item["label"], item["default_id"], action, item["icon"]))
     lines.append(shortcut("All Kids Apps", "addons", "ActivateWindow(1170,return)", "DefaultAddon.png"))
     lines.append(shortcut("My Favourites", "favourites", "ActivateWindow(Favourites)", "icons/big/Favourites.png"))
@@ -121,9 +121,9 @@ def properties_json(manifest: dict) -> list[list[str]]:
     properties: list[list[str]] = []
     for item in MAINMENU_ITEMS:
         group_entries = entries(manifest, item["menu_group"])
-        addon_id = group_entries[0]["id"] if group_entries else item["addon_id"]
+        addon_id = group_entries[0]["id"] if group_entries else item.get("addon_id", "plugin.video.solokodi.kidsrd")
         default_id = item["default_id"]
-        widget_path = f"plugin://{addon_id}/"
+        widget_path = group_entries[0].get("path") if group_entries else f"plugin://{addon_id}/"
         properties.extend(
             [
                 ["mainmenu", "", "widget", "Addon", default_id],
@@ -146,7 +146,8 @@ def main() -> int:
 
     (target_dir / f"{SKIN}-mainmenu.DATA.xml").write_text(mainmenu_xml(), encoding="utf-8")
     for item in MAINMENU_ITEMS:
-        path = target_dir / f"{SKIN}-{item['addon_id']}.DATA.xml"
+        submenu_key = item.get("addon_id") or item["default_id"]
+        path = target_dir / f"{SKIN}-{submenu_key}.DATA.xml"
         path.write_text(group_xml(manifest, item["menu_group"], item["label"]), encoding="utf-8")
         print(f"Wrote {path}")
 

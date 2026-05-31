@@ -30,13 +30,20 @@ def _progress(title, line):
     return progress
 
 
-def _step_intro(step):
+def _step_intro(step, manifest=None):
+    manifest = manifest or build_config.load_embedded_manifest()
+    build = build_config.build_info(manifest)
+    config = build_config.streaming_repo_config(manifest)
+    build_name = build.get("name", "SoLoKodi")
+    wizard_label = config.get("wizard_label") or "{0} Build Wizard".format(build_name)
+    repository_label = config.get("repository_label") or config.get("repository_id") or "streaming repository"
     intros = {
         "realdebrid": "Connect Real-Debrid so premium cached streams work in Xenon and other addons.",
-        "tmdb": "Add a free TMDb API key so the add-on can browse kids movies and TV.",
-        "solotv_repo": "Adds the SoLoTV file source and installs repository.solotv (SoLo-branded catalog).",
-        "solotv_wizard": "Installs the SoLoTV Build Wizard from the SoLoTV repository.",
-        "launch_wizard": "Opens the SoLoTV Build Wizard to install the Xenon interface and streaming add-ons.",
+        "trakt": "Save your Trakt API token for supported streaming add-ons.",
+        "tmdb": "Add a free TMDb API key for metadata lookups in SoLoKodi add-ons and supported skins.",
+        "solotv_repo": "Adds the {0} file source and installs {1}.".format(build_name, repository_label),
+        "solotv_wizard": "Installs {0} from the streaming repository.".format(wizard_label),
+        "launch_wizard": "Opens {0} to install the interface and streaming add-ons.".format(wizard_label),
     }
     required = "Required" if step.get("required", True) else "Optional"
     body = intros.get(step["id"], "Continue with this step?")
@@ -114,22 +121,26 @@ def run_realdebrid_step():
     return status.step_realdebrid()["complete"]
 
 
+def run_trakt_step():
+    from . import setup
+
+    if status.step_trakt()["complete"]:
+        ok = xbmcgui.Dialog().yesno("Trakt", "Trakt API token is already saved. Enter a new one?")
+        if not ok:
+            return True
+    token = xbmcgui.Dialog().input("Enter your Trakt API token", type=xbmcgui.INPUT_ALPHANUM)
+    return setup.save_trakt_api_token(token)
+
+
 def run_tmdb_step():
+    from . import setup
+
     if status.step_tmdb()["complete"]:
         ok = xbmcgui.Dialog().yesno("TMDb", "TMDb API key is already saved. Enter a new one?")
         if not ok:
             return True
     key = xbmcgui.Dialog().input("Enter your free TMDb API key", type=xbmcgui.INPUT_ALPHANUM)
-    if not key:
-        return False
-    try:
-        kidsrd = xbmcaddon.Addon("plugin.video.solokodi.kidsrd")
-        kidsrd.setSetting("tmdb_api_key", key.strip())
-        notify("TMDb API key saved")
-        return True
-    except RuntimeError:
-        xbmcgui.Dialog().ok("TMDb", "Install SoLoKodi Kids Real-Debrid first, then try again.")
-        return False
+    return setup.save_tmdb_api_key(key)
 
 
 def run_setup_wizard():
@@ -172,40 +183,56 @@ def run_setup_wizard():
             detail = [] if menu_ready else ["shortcuts not configured"]
             results.append((step["label"], menu_ready, detail))
         elif step_id == "solotv_repo":
-            progress.update(int((index / total) * 100), "Installing SoLoTV repository...")
+            config = build_config.streaming_repo_config(manifest)
+            repository_label = config.get("repository_label") or config.get("repository_id") or "streaming repository"
+            progress.update(int((index / total) * 100), "Installing {0}...".format(repository_label))
             ok = solotv_repo.install_streaming_repository(manifest)
-            results.append((step["label"], ok, [] if ok else ["SoLoTV repository"]))
+            results.append((step["label"], ok, [] if ok else [repository_label]))
         elif step_id == "solotv_wizard":
-            progress.update(int((index / total) * 100), "Installing SoLoTV Build Wizard...")
+            config = build_config.streaming_repo_config(manifest)
+            wizard_label = config.get("wizard_label") or "Build Wizard"
+            progress.update(int((index / total) * 100), "Installing {0}...".format(wizard_label))
             ok = solotv_repo.install_build_wizard(manifest)
-            results.append((step["label"], ok, [] if ok else ["SoLoTV Build Wizard"]))
+            results.append((step["label"], ok, [] if ok else [wizard_label]))
         elif step_id == "launch_wizard":
             progress.close()
             config = build_config.streaming_repo_config(manifest)
+            wizard_label = config.get("wizard_label") or "Build Wizard"
             hint = config.get("recommended_build_hint", "")
-            if _step_intro(step):
+            if _step_intro(step, manifest):
                 ok = solotv_repo.launch_build_wizard(manifest)
                 if ok and hint:
                     xbmcgui.Dialog().ok(
                         heading,
-                        "SoLoTV Build Wizard is open.\n\n{0}\n\n"
-                        "When the interface finishes installing, restart Kodi.".format(hint),
+                        "{0} is open.\n\n{1}\n\n"
+                        "When the interface finishes installing, restart Kodi.".format(
+                            wizard_label,
+                            hint,
+                        ),
                     )
-                results.append((step["label"], ok, [] if ok else ["SoLoTV Build Wizard"]))
+                results.append((step["label"], ok, [] if ok else [wizard_label]))
             else:
                 results.append((step["label"], False, ["skipped"]))
             progress = _progress(heading, "Continuing...")
         elif step_id == "realdebrid":
             progress.close()
-            if _step_intro(step):
+            if _step_intro(step, manifest):
                 ok = run_realdebrid_step()
+                results.append((step["label"], ok, [] if ok else ["skipped"]))
+            else:
+                results.append((step["label"], False, ["skipped"]))
+            progress = _progress(heading, "Continuing...")
+        elif step_id == "trakt":
+            progress.close()
+            if _step_intro(step, manifest):
+                ok = run_trakt_step()
                 results.append((step["label"], ok, [] if ok else ["skipped"]))
             else:
                 results.append((step["label"], False, ["skipped"]))
             progress = _progress(heading, "Continuing...")
         elif step_id == "tmdb":
             progress.close()
-            if _step_intro(step):
+            if _step_intro(step, manifest):
                 ok = run_tmdb_step()
                 results.append((step["label"], ok, [] if ok else ["skipped"]))
             else:
@@ -225,7 +252,9 @@ def run_setup_wizard():
             lines.append("  - " + ", ".join(detail))
     lines.append("")
     if build_config.is_streaming_build(manifest):
-        lines.append("Open SoLoTV Build Wizard from favourites to finish the interface setup.")
+        config = build_config.streaming_repo_config(manifest)
+        wizard_label = config.get("wizard_label") or "Build Wizard"
+        lines.append("Open {0} from favourites to finish the interface setup.".format(wizard_label))
     else:
         lines.append("Restart Kodi if the new skin is not visible yet.")
     xbmcgui.Dialog().ok(heading, "\n".join(lines))
@@ -234,10 +263,16 @@ def run_setup_wizard():
 def run_change_skin():
     manifest = build_config.load_embedded_manifest()
     if build_config.is_streaming_build(manifest):
+        build = build_config.build_info(manifest)
+        config = build_config.streaming_repo_config(manifest)
+        wizard_label = config.get("wizard_label") or "Build Wizard"
         xbmcgui.Dialog().ok(
             _wizard_heading(manifest),
-            "SoLoTV uses the Xenon interface from the SoLoTV Build Wizard.\n\n"
-            "Open SoLoTV Build Wizard to change skins or rebuild.",
+            "{0} uses the streaming interface from {1}.\n\n"
+            "Open {1} to change skins or rebuild.".format(
+                build.get("name", "This build"),
+                wizard_label,
+            ),
         )
         solotv_repo.launch_build_wizard(manifest)
         return
@@ -276,11 +311,14 @@ def run_quick_repair():
     build = build_config.build_info(manifest)
     progress = _progress("Repair Build", "Re-syncing {0}...".format(build.get("name", "build")))
     if build_config.is_streaming_build(manifest):
-        progress.update(20, "Checking SoLoTV repository...")
+        config = build_config.streaming_repo_config(manifest)
+        wizard_label = config.get("wizard_label") or "Build Wizard"
+        repository_label = config.get("repository_label") or config.get("repository_id") or "streaming repository"
+        progress.update(20, "Checking {0}...".format(repository_label))
         solotv_repo.install_streaming_repository(manifest)
-        progress.update(45, "Checking SoLoTV Build Wizard...")
+        progress.update(45, "Checking {0}...".format(wizard_label))
         solotv_repo.install_build_wizard(manifest)
-        progress.update(70, "Refreshing SoLoTV shortcuts...")
+        progress.update(70, "Refreshing {0} shortcuts...".format(build.get("name", "streaming build")))
         build_ops.apply_theme(manifest)
         build_ops.write_favourites(manifest)
     else:

@@ -7,7 +7,7 @@
     "description": "SoLo-branded streaming build \u2014 movies, TV, live channels, and Real-Debrid-ready add-ons via the SoLoTV repository.",
     "id": "solotv",
     "name": "SoLoTV",
-    "version": "1.0.4"
+    "version": "1.0.5"
   },
   "build_type": "streaming",
   "card_image": "solotv.png",
@@ -22,7 +22,7 @@
       "name": "SoLoTV Build Wizard"
     }
   ],
-  "generated_at": "2026-05-31T16:26:57Z",
+  "generated_at": "2026-05-31T19:55:56Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/solotv/manifest.json",
   "repository": {
     "id": "repository.solokodi",
@@ -35,7 +35,7 @@
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Setup",
-    "version": "0.5.4"
+    "version": "0.5.6"
   },
   "setup_favourite": "SoLoTV Setup",
   "skin": {
@@ -83,6 +83,16 @@
     {
       "id": "realdebrid",
       "label": "Connect Real-Debrid (optional)",
+      "required": false
+    },
+    {
+      "id": "trakt",
+      "label": "Add Trakt API token (optional)",
+      "required": false
+    },
+    {
+      "id": "tmdb",
+      "label": "Add TMDb API key (optional)",
       "required": false
     },
     {

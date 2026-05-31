@@ -111,5 +111,31 @@
         </setting>
       </group>
     </category>
+    <category id="api_tokens" label="API Tokens (Optional)" help="">
+      <group id="1" label="">
+        <setting id="trakt_api_token" type="string" label="Trakt API Token" help="">
+          <level>0</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>Trakt API Token</heading>
+            <hidden>true</hidden>
+          </control>
+        </setting>
+        <setting id="tmdb_api_key" type="string" label="TMDb API Key" help="">
+          <level>0</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>TMDb API Key</heading>
+            <hidden>true</hidden>
+          </control>
+        </setting>
+      </group>
+    </category>
   </section>
 </settings>

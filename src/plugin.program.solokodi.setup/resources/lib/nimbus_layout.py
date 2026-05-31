@@ -32,6 +32,10 @@ def _widget_label(label):
     return "{0} | {1}".format(label, WIDGET_STYLE)
 
 
+def _entry_path(entry):
+    return entry.get("path") or _plugin_path(entry["id"])
+
+
 def _entries_for_group(manifest, group_name):
     entries = []
     for entry in build_config.content_addons(manifest):
@@ -56,7 +60,7 @@ def _seed_rows(manifest):
             rows.append(
                 (
                     setting,
-                    _plugin_path(entry["id"]),
+                    _entry_path(entry),
                     label,
                     WIDGET_TYPE,
                     _widget_label(label),
@@ -73,7 +77,7 @@ def _seed_rows(manifest):
         add_main_menu(
             "tvshow.main_menu",
             "Kids TV Shows",
-            _plugin_path(first["id"]),
+            _entry_path(first),
         )
         add_widgets("tvshow", tv_entries)
 
@@ -82,7 +86,7 @@ def _seed_rows(manifest):
         add_main_menu(
             "movie.main_menu",
             "Kids Movies",
-            _plugin_path(first["id"]),
+            _entry_path(first),
         )
         add_widgets("movie", movie_entries)
 
@@ -91,7 +95,7 @@ def _seed_rows(manifest):
         add_main_menu(
             "custom1.main_menu",
             "Live Kids TV",
-            _plugin_path(first["id"]),
+            _entry_path(first),
         )
         add_widgets("custom1", live_entries)
 
@@ -100,7 +104,7 @@ def _seed_rows(manifest):
         add_main_menu(
             "custom2.main_menu",
             "Explore",
-            _plugin_path(first["id"]),
+            _entry_path(first),
         )
         add_widgets("custom2", video_entries)
 

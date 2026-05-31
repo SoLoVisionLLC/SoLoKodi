@@ -102,6 +102,7 @@ def generate_build_manifest(build_path: Path, addon_dirs: list[Path]) -> dict:
         "tagline",
         "requires_debrid",
         "card_image",
+        "family_trakt_lists",
     ):
         if optional_key in build:
             manifest[optional_key] = build[optional_key]

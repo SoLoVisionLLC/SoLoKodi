@@ -1,7 +1,7 @@
 {
   "id": "solotv",
   "name": "SoLoTV",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "SoLo-branded streaming build — movies, TV, live channels, and Real-Debrid-ready add-ons via the SoLoTV repository.",
   "tagline": "Stream everything. SoLo simple.",
   "requires_debrid": true,
@@ -52,6 +52,8 @@
     {"id": "solotv_wizard", "label": "Install SoLoTV Build Wizard", "required": true},
     {"id": "favourites", "label": "Create SoLoTV shortcuts", "required": true},
     {"id": "realdebrid", "label": "Connect Real-Debrid (optional)", "required": false},
+    {"id": "trakt", "label": "Add Trakt API token (optional)", "required": false},
+    {"id": "tmdb", "label": "Add TMDb API key (optional)", "required": false},
     {"id": "launch_wizard", "label": "Install SoLoTV interface", "required": true}
   ]
 }

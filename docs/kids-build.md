@@ -1,12 +1,13 @@
 # SoLoKodi Kids Build
 
 The Kids build is the first profile in the SoLoKodi family. It prioritizes
-**maximum kid content** from official Kodi sources with a fun, colorful theme.
+maximum kid content from official Kodi sources, family-friendly Trakt lists,
+and a fun, colorful theme.
 
 ## Sources
 
-All add-ons install from the **official Kodi repository** — no third-party
-repos required.
+All add-ons install from the official Kodi repository; no third-party repos are
+required for the default Kids sources.
 
 | Favourite shortcut | Add-on ID | Notes |
 |--------------------|-----------|-------|
@@ -22,33 +23,52 @@ repos required.
 
 ## Theme
 
-Setup lets you choose between two kids home looks (both get the same shortcuts and menu groups):
+Setup lets you choose between two kids home looks. Both get the same shortcuts
+and menu groups.
 
 | Skin | Source | Home menu engine |
 |------|--------|------------------|
-| **Bello** (`skin.bello.10`) | Official Kodi repo | `script.skinshortcuts` |
-| **Nimbus** (`skin.nimbus`) | [ivarbrandt repo](https://ivarbrandt.github.io/) | `script.nimbus.helper` |
+| Bello (`skin.bello.10`) | Official Kodi repo | `script.skinshortcuts` |
+| Nimbus (`skin.nimbus`) | [ivarbrandt repo](https://ivarbrandt.github.io/) | `script.nimbus.helper` |
 
 Both skins receive:
 
-- **Accent colors:** bright orange (`FFFF7043`)
-- **Home menu:** Kids TV Shows, Live Kids TV, Kids Movies, Explore, Favourites — each opens ready-to-browse add-ons
+- Accent colors: bright aqua (`FF00B8D4`) with orange, purple, and yellow support colors
+- Home menu: Kids TV Shows, Live Kids TV, Kids Movies, Family Trakt, Explore, Favourites
 
-The wizard prompts you to pick Bello or Nimbus during **Choose kids theme**. You can switch later from **Change Kids Skin** in the setup add-on.
+The wizard prompts you to pick Bello or Nimbus during Choose kids theme. You can
+switch later from Change Kids Skin in the setup add-on.
 
 Restart Kodi after setup to see the full theme.
 
-**Note:** Nimbus is not in the official Kodi repository. The setup wizard adds the ivarbrandt file source, installs `repository.ivarbrandt` from its zip file, then installs Nimbus and `script.nimbus.helper` from that repo.
+Note: Nimbus is not in the official Kodi repository. The setup wizard adds the
+ivarbrandt file source, installs `repository.ivarbrandt` from its zip file, then
+installs Nimbus and `script.nimbus.helper` from that repo.
+
+## Family Trakt Lists
+
+The Kids build includes curated family-friendly Trakt shortcuts:
+
+| Shortcut | Trakt list |
+|----------|------------|
+| Trending Kids Movies | `tvgeniekodi/trending-kids-movies` |
+| Kids Picks | `kristaeglover/kids` |
+| Kids Top TV Shows | `mrspacegoose/kids-top-tv-shows` |
+
+The setup wizard can save a Trakt API token so Kids Real-Debrid can browse
+these lists directly from the Kids home menu.
 
 ## Setup Flow
 
-1. Install `repository.solokodi` from the hosted ZIP (`repository.solokodi-0.4.4.zip`).
+1. Install `repository.solokodi` from the hosted repository ZIP.
 2. Install `plugin.program.solokodi.setup` from the SoLoKodi repo.
-3. Open **SoLoKodi Kids Setup** and run **Setup Wizard**.
-4. Restart Kodi.
-5. Use **Check for Updates** or **Update Build Now** to stay current.
+3. Open SoLoKodi Kids Setup and run Setup Wizard.
+4. Save optional Real-Debrid, Trakt, and TMDb credentials when prompted.
+5. Restart Kodi.
+6. Use Check for Updates or Update Build Now to stay current.
 
-See [wizard-and-updates.md](wizard-and-updates.md) for the full wizard and update system.
+See [wizard-and-updates.md](wizard-and-updates.md) for the full wizard and
+update system.
 
 ## Guardrails Removed
 
@@ -58,19 +78,21 @@ warnings that blocked the kids-first experience. v0.2.0 removes those:
 - Setup dialog is welcoming, not restrictive
 - Parent tips are optional, not auto-shown after setup
 - Landing page focuses on what's included, not legal boundaries
-- No source filtering — all official kids add-ons are installed
+- No source filtering; all official kids add-ons are installed
 
-Optional Real-Debrid remains available via **Kids Real-Debrid**
-(`plugin.video.solokodi.kidsrd`). See [kids-real-debrid.md](kids-real-debrid.md).
+Optional Real-Debrid and Trakt list browsing remain available via Kids
+Real-Debrid (`plugin.video.solokodi.kidsrd`). See
+[kids-real-debrid.md](kids-real-debrid.md).
 
 ## Adding More Sources
 
-Edit `KIDS_ADDONS` in
-`src/plugin.program.solokodi.setup/resources/lib/setup.py` and rebuild:
+Edit `src/builds/kids.json` and rebuild:
 
 ```bash
 python3 scripts/build_repo.py
 python3 scripts/verify_repo.py
 ```
 
-Each entry is a tuple of `(addon_id, install_label, favourite_name)`.
+Each `content_addons` entry can include `menu_group` and `favourite`. Each
+`family_trakt_lists` entry should include `label`, `user`, `slug`,
+`media_type`, and `menu_group`.

@@ -1,0 +1,60 @@
+{
+  "id": "solokids-tv",
+  "name": "SoLoKids TV",
+  "version": "1.0.0",
+  "description": "A SoLoTV streaming build cloned and rebranded for kids, with a kid-friendly interface, Real-Debrid-ready playback, and simple family browsing shortcuts.",
+  "tagline": "SoLoTV power, kid-friendly style.",
+  "requires_debrid": true,
+  "card_image": "solokids-tv.png",
+  "website": "https://solokodi.sololink.cloud/solokids-tv/",
+  "manifest_url": "https://solokodi.sololink.cloud/builds/solokids-tv/manifest.json",
+  "repo_url": "https://solokodi.sololink.cloud/repo/addons.xml",
+  "repository_id": "repository.solokodi",
+  "build_type": "streaming",
+  "branding": {
+    "accent_color": "FF00B8D4",
+    "palette": ["FF00B8D4", "FFFF7043", "FF7E57C2", "FFFFCA28"],
+    "tagline": "SoLoTV power, kid-friendly style."
+  },
+  "streaming_repo": {
+    "file_source_name": "solokids-tv",
+    "file_source_url": "https://solokodi.sololink.cloud/solokids-tv/",
+    "repository_id": "repository.solotv",
+    "repository_label": "SoLoTV streaming repository",
+    "wizard_addon_id": "plugin.program.chef21",
+    "wizard_label": "SoLoKids TV Build Wizard",
+    "recommended_build_hint": "In the SoLoKids TV Build Wizard, choose the SoLoKids TV 4K build for the kid-friendly streaming interface.",
+    "build_list_url": "https://solokodi.sololink.cloud/solokids-tv/builds.xml",
+    "notify_url": "https://solokodi.sololink.cloud/solokids-tv/notify.txt",
+    "videos_url": "https://solokodi.sololink.cloud/solokids-tv/videos.txt",
+    "changelog_dir": "https://solokodi.sololink.cloud/solokids-tv/"
+  },
+  "skin": {
+    "apply_on_setup": false,
+    "default_id": "skin.estuary",
+    "colors": [
+      ["lookandfeel.skincolors", "FF00B8D4"]
+    ]
+  },
+  "content_addons": [],
+  "solokodi_addons": [],
+  "favourites": [
+    {
+      "name": "SoLoKids TV Setup",
+      "action": "RunAddon(plugin.program.solokodi.setup)"
+    },
+    {
+      "name": "SoLoKids TV Build Wizard",
+      "action": "RunAddon(plugin.program.chef21)"
+    }
+  ],
+  "setup_favourite": "SoLoKids TV Setup",
+  "wizard_steps": [
+    {"id": "solotv_repo", "label": "Install streaming repository", "required": true},
+    {"id": "solotv_wizard", "label": "Install SoLoKids TV Build Wizard", "required": true},
+    {"id": "favourites", "label": "Create SoLoKids TV shortcuts", "required": true},
+    {"id": "realdebrid", "label": "Connect Real-Debrid", "required": true},
+    {"id": "tmdb", "label": "Add TMDb API key (optional)", "required": false},
+    {"id": "launch_wizard", "label": "Install SoLoKids TV interface", "required": true}
+  ]
+}

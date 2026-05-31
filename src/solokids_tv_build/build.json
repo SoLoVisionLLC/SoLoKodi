@@ -1,0 +1,32 @@
+{
+  "id": "solokids-tv",
+  "name": "SoLoKids TV 4K",
+  "version": "1.0.0",
+  "description": "SoLoKids TV 4K - a kid-friendly SoLoTV clone with Real-Debrid-ready streaming add-ons and family-first home shortcuts.",
+  "icon": "https://solokodi.sololink.cloud/solokids-tv/cards/solokids-tv.png",
+  "fanart": "https://solokodi.sololink.cloud/solokids-tv/cards/solokids-tv.png",
+  "base_url": "https://solokodi.sololink.cloud/solokids-tv/builds/",
+  "foundation_note": "Seeded from the same upstream Diggz AIO foundation as SoLoTV, then rebranded as a kid-friendly SoLoKids TV build by SoLoVision.",
+  "wizard_sources": {
+    "buildfile": "https://solokodi.sololink.cloud/solokids-tv/builds.xml",
+    "videos_url": "https://solokodi.sololink.cloud/solokids-tv/videos.txt",
+    "notify_url": "https://solokodi.sololink.cloud/solokids-tv/notify.txt",
+    "changelog_dir": "https://solokodi.sololink.cloud/solokids-tv/"
+  },
+  "sources": [
+    {
+      "kodi": "K21",
+      "urls": [
+        "https://diggz1.me/Builds/21_AIO_v3_530_7am.zip",
+        "https://archive.org/download/21-aio-v-3-530-7am/21_AIO_v3_530_7am.zip"
+      ]
+    },
+    {
+      "kodi": "K22",
+      "urls": [
+        "https://diggz1.me/Builds/22_AIO_v3_530_7am.zip",
+        "https://archive.org/download/22-aio-v-3-530-7am/22_AIO_v3_530_7am.zip"
+      ]
+    }
+  ]
+}

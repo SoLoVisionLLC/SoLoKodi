@@ -72,7 +72,8 @@ def _shortcut(label, default_id, action, icon):
 def _addon_shortcut(entry, icon=None):
     addon_id = entry["id"]
     label = entry.get("favourite") or entry["label"]
-    action = "ActivateWindow(Videos,plugin://{0}/,return)".format(addon_id)
+    path = entry.get("path") or "plugin://{0}/".format(addon_id)
+    action = entry.get("action") or "ActivateWindow(Videos,{0},return)".format(path)
     return _shortcut(label, _slug(addon_id), action, icon or "DefaultAddonVideo.png")
 
 
@@ -110,7 +111,7 @@ def _build_group_xml(entries, fallback_label, fallback_icon):
 
 
 def _bello_submenu_key(item):
-    return item["addon_id"]
+    return item.get("addon_id") or item["default_id"]
 
 
 def _first_entry_for_group(manifest, menu_group):
@@ -122,7 +123,7 @@ def _build_bello_mainmenu_xml(manifest):
     setup_id = "plugin.program.solokodi.setup"
     lines = ['<?xml version=\'1.0\' encoding=\'UTF-8\'?>', "<shortcuts>"]
     for item in MAINMENU_ITEMS:
-        action = "ActivateWindow(Videos,plugin://{0}/,return)".format(item["addon_id"])
+        action = item.get("action") or "ActivateWindow(Videos,plugin://{0}/,return)".format(item["addon_id"])
         lines.append(_shortcut(item["label"], item["default_id"], action, item["icon"]))
     lines.append(
         _shortcut(
@@ -164,8 +165,10 @@ def _build_bello_properties(manifest):
     properties = []
     for item in MAINMENU_ITEMS:
         default_id = item["default_id"]
-        entry = _first_entry_for_group(manifest, item["menu_group"]) or {"id": item["addon_id"]}
-        widget_path = "plugin://{0}/".format(entry["id"])
+        entry = _first_entry_for_group(manifest, item["menu_group"]) or {
+            "id": item.get("addon_id", "plugin.video.solokodi.kidsrd")
+        }
+        widget_path = entry.get("path") or "plugin://{0}/".format(entry["id"])
         widget_name = item["label"]
         properties.extend(
             [

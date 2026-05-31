@@ -14,12 +14,13 @@ COPY public ./public
 RUN python3 scripts/build_repo.py \
     && python3 scripts/verify_repo.py
 
-# Build the rebranded SoLoTV build(s) from the Diggz foundation and publish our
-# own build list. SOLOTV_TARGETS picks the Kodi target(s); leave empty to build
-# every target in src/solotv_build/build.json (downloads ~166MB each). Default
-# builds all targets so builds.xml lists every Kodi version (K21 + K22).
+# Build the rebranded streaming build(s) from the Diggz foundation and publish
+# our own build lists. Leave target args empty to build every configured Kodi
+# target (K21 + K22).
 ARG SOLOTV_TARGETS=
+ARG SOLOKIDS_TV_TARGETS=
 RUN python3 scripts/build_solotv_build.py ${SOLOTV_TARGETS}
+RUN python3 scripts/build_solotv_build.py --profile solokids-tv ${SOLOKIDS_TV_TARGETS}
 
 FROM nginx:1.27-alpine
 

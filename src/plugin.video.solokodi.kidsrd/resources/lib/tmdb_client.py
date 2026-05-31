@@ -5,7 +5,7 @@ import urllib.request
 
 import xbmcaddon
 
-from .constants import HTTP_HEADERS, TMDB_API_ROOT, TMDB_IMAGE_ROOT
+from .constants import HTTP_HEADERS, SETUP_ADDON_ID, TMDB_API_ROOT, TMDB_IMAGE_ROOT
 
 
 class TmdbError(Exception):
@@ -15,9 +15,20 @@ class TmdbError(Exception):
 class TmdbClient:
     def __init__(self):
         self.addon = xbmcaddon.Addon()
+        self._setup = None
+
+    def _setup_addon(self):
+        if self._setup is None:
+            try:
+                self._setup = xbmcaddon.Addon(SETUP_ADDON_ID)
+            except RuntimeError:
+                self._setup = False
+        return self._setup
 
     def api_key(self):
-        key = self.addon.getSetting("tmdb_api_key")
+        setup = self._setup_addon()
+        key = setup.getSetting("tmdb_api_key") if setup else ""
+        key = key or self.addon.getSetting("tmdb_api_key")
         if not key:
             raise TmdbError("Add your free TMDb API key in this add-on settings.")
         return key

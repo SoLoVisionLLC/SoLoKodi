@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.5.4" provider-name="SoLoVision">
+<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.5.6" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -14,10 +14,10 @@
     <platform>all</platform>
     <license>MIT</license>
     <website>https://solokodi.sololink.cloud</website>
-    <news>v0.5.4 - Fix SoLoTV Build Wizard downloads served with transfer compression; validate the ZIP before clearing Kodi data.</news>
+    <news>v0.5.6 - Add Kids Trakt list setup, brighter Kids branding, and refreshed Kids home menus.</news>
   </extension>
 </addon>
-<addon id="plugin.video.solokodi.kidsrd" name="SoLoKodi Kids Real-Debrid" version="0.2.3" provider-name="SoLoVision">
+<addon id="plugin.video.solokodi.kidsrd" name="SoLoKodi Kids Real-Debrid" version="0.2.4" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -26,7 +26,7 @@
   </extension>
   <extension point="xbmc.addon.metadata">
     <summary lang="en_US">Kids movies and shows through Real-Debrid.</summary>
-    <description lang="en_US">Browse kids and family content with TMDb, play from your Real-Debrid library, and stream cached titles when available. Uses Real-Debrid authorization from SoLoKodi Kids Setup. v0.2.3 improves modern kids TV discovery and torrent matching.</description>
+    <description lang="en_US">Browse kids and family content with TMDb and curated Trakt lists, play from your Real-Debrid library, and stream cached titles when available. Uses Real-Debrid and Trakt authorization from SoLoKodi Kids Setup. v0.2.4 adds family-friendly Trakt list browsing.</description>
     <platform>all</platform>
     <license>MIT</license>
     <website>https://solokodi.sololink.cloud</website>

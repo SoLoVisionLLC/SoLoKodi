@@ -1,7 +1,7 @@
 {
   "id": "kids",
   "name": "SoLoKodi Kids",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Every official kids source pre-loaded in the home menu, fun theme, Real-Debrid kids streaming, and one-tap shortcuts.",
   "tagline": "Safe, colorful, kid-first Kodi.",
   "requires_debrid": false,
@@ -10,11 +10,16 @@
   "manifest_url": "https://solokodi.sololink.cloud/builds/kids/manifest.json",
   "repo_url": "https://solokodi.sololink.cloud/repo/addons.xml",
   "repository_id": "repository.solokodi",
+  "branding": {
+    "accent_color": "FF00B8D4",
+    "palette": ["FF00B8D4", "FFFF7043", "FF7E57C2", "FFFFCA28"],
+    "tagline": "Safe, colorful, kid-first Kodi."
+  },
   "skin": {
     "default_id": "skin.bello.10",
     "id": "skin.bello.10",
     "colors": [
-      ["lookandfeel.skincolors", "FFFF7043"]
+      ["lookandfeel.skincolors", "FF00B8D4"]
     ],
     "options": [
       {

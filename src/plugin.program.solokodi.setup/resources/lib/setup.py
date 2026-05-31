@@ -135,6 +135,48 @@ def check_real_debrid():
     )
 
 
+def save_trakt_api_token(token):
+    value = (token or "").strip()
+    if not value:
+        return False
+    ADDON.setSetting("trakt_api_token", value)
+    try:
+        kidsrd = xbmcaddon.Addon("plugin.video.solokodi.kidsrd")
+        kidsrd.setSetting("trakt_api_token", value)
+    except RuntimeError:
+        pass
+    notify("Trakt API token saved")
+    return True
+
+
+def save_tmdb_api_key(key):
+    value = (key or "").strip()
+    if not value:
+        return False
+    ADDON.setSetting("tmdb_api_key", value)
+    try:
+        kidsrd = xbmcaddon.Addon("plugin.video.solokodi.kidsrd")
+        kidsrd.setSetting("tmdb_api_key", value)
+    except RuntimeError:
+        pass
+    notify("TMDb API key saved")
+    return True
+
+
+def clear_api_credentials():
+    if not xbmcgui.Dialog().yesno("API Tokens", "Remove saved Trakt and TMDb credentials from this Kodi profile?"):
+        return
+    for key in ("trakt_api_token", "tmdb_api_key"):
+        ADDON.setSetting(key, "")
+    try:
+        kidsrd = xbmcaddon.Addon("plugin.video.solokodi.kidsrd")
+        kidsrd.setSetting("trakt_api_token", "")
+        kidsrd.setSetting("tmdb_api_key", "")
+    except RuntimeError:
+        pass
+    notify("API credentials cleared")
+
+
 def clear_real_debrid():
     if not xbmcgui.Dialog().yesno("Real-Debrid", "Remove saved Real-Debrid credentials from this Kodi profile?"):
         return

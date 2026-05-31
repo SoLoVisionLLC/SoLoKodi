@@ -1,9 +1,19 @@
 {
+  "branding": {
+    "accent_color": "FF00B8D4",
+    "palette": [
+      "FF00B8D4",
+      "FFFF7043",
+      "FF7E57C2",
+      "FFFFCA28"
+    ],
+    "tagline": "Safe, colorful, kid-first Kodi."
+  },
   "build": {
-    "description": "Every official kids source pre-loaded in the home menu, fun theme, Real-Debrid kids streaming, and one-tap shortcuts.",
+    "description": "Every official kids source pre-loaded in the home menu, family-friendly Trakt lists, fun theme, Real-Debrid kids streaming, and one-tap shortcuts.",
     "id": "kids",
     "name": "SoLoKodi Kids",
-    "version": "1.3.1"
+    "version": "1.3.2"
   },
   "card_image": "kids.png",
   "content_addons": [
@@ -62,7 +72,33 @@
       "menu_group": "tvshows"
     }
   ],
-  "generated_at": "2026-05-31T16:26:57Z",
+  "family_trakt_lists": [
+    {
+      "favourite": "Trending Kids Movies",
+      "label": "Trending Kids Movies",
+      "media_type": "movie",
+      "menu_group": "trakt",
+      "slug": "trending-kids-movies",
+      "user": "tvgeniekodi"
+    },
+    {
+      "favourite": "Kids Picks",
+      "label": "Kids Picks",
+      "media_type": "mixed",
+      "menu_group": "trakt",
+      "slug": "kids",
+      "user": "kristaeglover"
+    },
+    {
+      "favourite": "Kids Top TV Shows",
+      "label": "Kids Top TV Shows",
+      "media_type": "show",
+      "menu_group": "trakt",
+      "slug": "kids-top-tv-shows",
+      "user": "mrspacegoose"
+    }
+  ],
+  "generated_at": "2026-05-31T19:55:56Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/kids/manifest.json",
   "repository": {
     "id": "repository.solokodi",
@@ -75,14 +111,14 @@
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Setup",
-    "version": "0.5.4"
+    "version": "0.5.6"
   },
   "setup_favourite": "SoLoKodi Kids Setup",
   "skin": {
     "colors": [
       [
         "lookandfeel.skincolors",
-        "FFFF7043"
+        "FF00B8D4"
       ]
     ],
     "default_id": "skin.bello.10",
@@ -116,7 +152,7 @@
       "id": "plugin.video.solokodi.kidsrd",
       "label": "SoLoKodi Kids Real-Debrid",
       "menu_group": "movies",
-      "version": "0.2.3"
+      "version": "0.2.4"
     }
   ],
   "tagline": "Safe, colorful, kid-first Kodi.",
@@ -145,6 +181,11 @@
     {
       "id": "realdebrid",
       "label": "Connect Real-Debrid",
+      "required": false
+    },
+    {
+      "id": "trakt",
+      "label": "Add Trakt API token",
       "required": false
     },
     {

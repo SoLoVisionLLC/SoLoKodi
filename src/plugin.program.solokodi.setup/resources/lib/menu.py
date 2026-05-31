@@ -65,10 +65,12 @@ def show_menu():
     )
 
     if is_solotv:
+        config = build_config.streaming_repo_config(manifest)
+        wizard_label = config.get("wizard_label") or "Build Wizard"
         add_item(
-            "Open SoLoTV Build Wizard",
+            "Open {0}".format(wizard_label),
             "open_chef",
-            "Install or update the SoLoTV interface and streaming add-ons.",
+            "Install or update the {0} interface and streaming add-ons.".format(build_name),
         )
     else:
         add_item(
@@ -103,6 +105,16 @@ def show_menu():
         "check_rd",
         "Confirm that the local Real-Debrid token works.",
     )
+    add_item(
+        "Set Trakt API Token",
+        "set_trakt",
+        "Save a Trakt token for setup and supported add-ons.",
+    )
+    add_item(
+        "Set TMDb API Key",
+        "set_tmdb",
+        "Save a TMDb key for metadata lookups.",
+    )
 
     if not is_solotv:
         add_item(
@@ -116,6 +128,11 @@ def show_menu():
         "clear_rd",
         "Remove Real-Debrid credentials from this Kodi profile.",
     )
+    add_item(
+        "Clear API Tokens",
+        "clear_api",
+        "Remove saved Trakt and TMDb credentials from this Kodi profile.",
+    )
 
     xbmcplugin.endOfDirectory(HANDLE)
 
@@ -127,7 +144,7 @@ def show_maintenance_menu():
     add_item(
         "Reset SoLoKodi Build",
         "maint_reset",
-        "Clear build selection and setup progress (keeps Real-Debrid and TMDb).",
+        "Clear build selection and setup progress (keeps Real-Debrid, Trakt, and TMDb).",
     )
     add_item("Force Close Kodi", "maint_quit", "Close Kodi to apply skin or build changes cleanly.")
     xbmcplugin.endOfDirectory(HANDLE)
@@ -184,10 +201,12 @@ def run():
         from . import solotv_repo
 
         manifest = build_config.load_embedded_manifest()
+        config = build_config.streaming_repo_config(manifest)
+        wizard_label = config.get("wizard_label") or "Build Wizard"
         if not solotv_repo.launch_build_wizard(manifest):
             xbmcgui.Dialog().ok(
-                "SoLoTV",
-                "SoLoTV Build Wizard is not installed yet.\n\nRun the SoLoTV Setup Wizard first.",
+                build_config.build_info(manifest).get("name", "Streaming Build"),
+                "{0} is not installed yet.\n\nRun the setup wizard first.".format(wizard_label),
             )
     elif action == "connect_rd":
         setup.connect_real_debrid()
@@ -195,9 +214,15 @@ def run():
         xbmc.executebuiltin("ActivateWindow(Videos,plugin://plugin.video.solokodi.kidsrd/,return)")
     elif action == "check_rd":
         setup.check_real_debrid()
+    elif action == "set_trakt":
+        wizard.run_trakt_step()
+    elif action == "set_tmdb":
+        wizard.run_tmdb_step()
     elif action == "parent_tips":
         setup.show_parent_tips()
     elif action == "clear_rd":
         setup.clear_real_debrid()
+    elif action == "clear_api":
+        setup.clear_api_credentials()
     else:
         show_menu()
