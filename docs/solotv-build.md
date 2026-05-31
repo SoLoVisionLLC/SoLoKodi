@@ -2,17 +2,25 @@
 
 SoLoTV is a **SoLo-branded Kodi streaming build** based on the same add-on catalog as the popular Xenon stack. It does **not** install `repository.diggz` or show Diggz branding during setup.
 
-## What is cloned vs what is mirrored
+## Full catalog mirror
 
 | Layer | SoLoTV approach |
 |-------|-----------------|
-| **Repository add-on** | `repository.solotv` — SoLoVision branding |
-| **Catalog list** | SoLo-branded `addons.xml` hosted at `/solotv/repo/` |
-| **Add-on packages** | Downloaded from the upstream Omega mirror (same versions Xenon expects) |
-| **Build wizard** | Same engine (`plugin.program.chef21`), metadata patched after install to read **SoLoTV Build Wizard** |
-| **Interface (Xenon skin)** | Installed through the wizard; skin may still use Xenon artwork internally until we ship a forked skin ZIP |
+| **Repository add-on** | `repository.solotv` — points at `https://solokodi.sololink.cloud/solotv/repo/` |
+| **Catalog list** | SoLo-branded `addons.xml` (Diggz repository add-ons **removed**) |
+| **Add-on packages** | All ~58 packages downloaded, metadata patched, hosted on your CDN |
+| **Build wizard** | `plugin.program.chef21` ZIP patched → **SoLoTV Build Wizard** |
+| **Skins** | Display names rebranded (e.g. Diggz Xenon → SoLoTV Xenon); add-on ids unchanged for compatibility |
 
-We are **not** redistributing a renamed copy of every ZIP in git yet. The catalog is mirrored and rebranded at the metadata layer; packages are fetched from the upstream CDN at install time. A full offline mirror of all 60+ add-ons can be added to `scripts/mirror_solotv_repo.py` later if you want zero upstream dependency.
+Generate / refresh the mirror:
+
+```bash
+python scripts/mirror_solotv_repo.py          # full download + patch
+python scripts/mirror_solotv_repo.py --force  # re-download everything
+python scripts/mirror_solotv_repo.py --xml-only  # catalog XML only
+```
+
+Mirrored ZIPs are gitignored (large). Deploy the entire `public/solotv/repo/` folder to your web host.
 
 ## Install
 
@@ -39,7 +47,7 @@ Deploy `public/` including `public/solotv/` and `public/solotv/repo/addons.xml`.
 ## File source for manual install
 
 - URL: `https://solokodi.sololink.cloud/solotv/`
-- ZIP: `repository.solotv-1.0.0.zip`
+- ZIP: `repository.solotv-1.0.1.zip`
 
 ## Legal
 

@@ -1,3 +1,8 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# SoLoTV mirrored catalog packages (large; generate with scripts/mirror_solotv_repo.py)
+public/solotv/repo/*/
+!public/solotv/repo/addons.xml
+!public/solotv/repo/addons.xml.md5

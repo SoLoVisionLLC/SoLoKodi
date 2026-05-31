@@ -50,7 +50,7 @@ update manifest.
 - [x] Setup wizard UI — no “Installing Diggz repository” messaging
 - [x] Profile switcher (Kids ↔ SoLoTV) in setup add-on
 - [x] Landing page at `/solotv/`
-- [ ] Optional: full CDN mirror of all upstream add-on ZIPs (offline catalog)
+- [x] Full CDN mirror of catalog ZIPs (`scripts/mirror_solotv_repo.py`)
 
 ## Next Up
 
@@ -64,5 +64,5 @@ update manifest.
 | Profile | Status | Manifest |
 |---------|--------|----------|
 | **Kids** | v1.3.0 | `/builds/kids/manifest.json` |
-| **SoLoTV** | v1.0.1 | `/builds/solotv/manifest.json` |
+| **SoLoTV** | v1.0.2 | `/builds/solotv/manifest.json` |
 | Sports | Planned | `/builds/sports/manifest.json` |
