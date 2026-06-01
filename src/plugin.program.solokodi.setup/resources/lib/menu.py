@@ -106,9 +106,9 @@ def show_menu():
         "Confirm that the local Real-Debrid token works.",
     )
     add_item(
-        "Set Trakt API Token",
+        "Authorize Trakt",
         "set_trakt",
-        "Save a Trakt token for setup and supported add-ons.",
+        "Authorize this Kodi profile with Trakt using the device flow.",
     )
     add_item(
         "Set TMDb API Key",
@@ -131,7 +131,7 @@ def show_menu():
     add_item(
         "Clear API Tokens",
         "clear_api",
-        "Remove saved Trakt and TMDb credentials from this Kodi profile.",
+        "Remove saved Trakt authorization and TMDb credentials from this Kodi profile.",
     )
 
     xbmcplugin.endOfDirectory(HANDLE)

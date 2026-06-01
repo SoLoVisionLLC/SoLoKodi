@@ -52,7 +52,7 @@
     {"id": "solotv_wizard", "label": "Install SoLoTV Build Wizard", "required": true},
     {"id": "favourites", "label": "Create SoLoTV shortcuts", "required": true},
     {"id": "realdebrid", "label": "Connect Real-Debrid (optional)", "required": false},
-    {"id": "trakt", "label": "Add Trakt API token (optional)", "required": false},
+    {"id": "trakt", "label": "Authorize Trakt (optional)", "required": false},
     {"id": "tmdb", "label": "Add TMDb API key (optional)", "required": false},
     {"id": "launch_wizard", "label": "Install SoLoTV interface", "required": true}
   ]

@@ -111,16 +111,79 @@
         </setting>
       </group>
     </category>
-    <category id="api_tokens" label="API Tokens (Optional)" help="">
+    <category id="api_tokens" label="Accounts (Optional)" help="">
       <group id="1" label="">
-        <setting id="trakt_api_token" type="string" label="Trakt API Token" help="">
+        <setting id="trakt_client_id" type="string" label="Trakt Client ID" help="">
+          <level>4</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>Trakt Client ID</heading>
+          </control>
+        </setting>
+        <setting id="trakt_client_secret" type="string" label="Trakt Client Secret" help="">
+          <level>4</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>Trakt Client Secret</heading>
+            <hidden>true</hidden>
+          </control>
+        </setting>
+        <setting id="trakt_access_token" type="string" label="Trakt Access Token" help="">
+          <level>4</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>Trakt Access Token</heading>
+            <hidden>true</hidden>
+          </control>
+        </setting>
+        <setting id="trakt_refresh_token" type="string" label="Trakt Refresh Token" help="">
+          <level>4</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>Trakt Refresh Token</heading>
+            <hidden>true</hidden>
+          </control>
+        </setting>
+        <setting id="trakt_expires_at" type="string" label="Trakt Expires At" help="">
+          <level>4</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>Trakt Expires At</heading>
+          </control>
+        </setting>
+        <setting id="trakt_username" type="string" label="Trakt Username" help="">
           <level>0</level>
           <default/>
           <constraints>
             <allowempty>true</allowempty>
           </constraints>
           <control type="edit" format="string">
-            <heading>Trakt API Token</heading>
+            <heading>Trakt Username</heading>
+          </control>
+        </setting>
+        <setting id="trakt_api_token" type="string" label="Legacy Trakt Access Token" help="">
+          <level>4</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>Legacy Trakt Access Token</heading>
             <hidden>true</hidden>
           </control>
         </setting>

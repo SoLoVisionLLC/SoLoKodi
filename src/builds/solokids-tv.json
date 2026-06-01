@@ -1,8 +1,8 @@
 {
   "id": "solokids-tv",
   "name": "SoLoKids TV",
-  "version": "1.0.0",
-  "description": "A SoLoTV streaming build cloned and rebranded for kids, with a kid-friendly interface, Real-Debrid-ready playback, and simple family browsing shortcuts.",
+  "version": "1.0.1",
+  "description": "A SoLoTV streaming build cloned and rebranded for kids, with a kid-friendly interface, curated kids Trakt lists, Real-Debrid-ready playback, and simple family browsing shortcuts.",
   "tagline": "SoLoTV power, kid-friendly style.",
   "requires_debrid": true,
   "card_image": "solokids-tv.png",

@@ -1,8 +1,8 @@
 {
   "id": "solokids-tv",
   "name": "SoLoKids TV 4K",
-  "version": "1.0.0",
-  "description": "SoLoKids TV 4K - a kid-friendly SoLoTV clone with Real-Debrid-ready streaming add-ons and family-first home shortcuts.",
+  "version": "1.0.1",
+  "description": "SoLoKids TV 4K - a kid-friendly SoLoTV clone with curated kids Trakt lists, Real-Debrid-ready streaming add-ons, and family-first home shortcuts.",
   "icon": "https://solokodi.sololink.cloud/solokids-tv/cards/solokids-tv.png",
   "fanart": "https://solokodi.sololink.cloud/solokids-tv/cards/solokids-tv.png",
   "base_url": "https://solokodi.sololink.cloud/solokids-tv/builds/",

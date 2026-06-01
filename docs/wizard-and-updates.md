@@ -32,6 +32,9 @@ actions:
 | **Change Kids Skin** *(Kids)* | Switch between Bello and Nimbus |
 | **Open SoLoTV Build Wizard** *(SoLoTV)* | Install/update the Xenon interface |
 | **Repair Build** | Re-sync add-ons, theme, and favourites without changing RD/TMDb |
+| **Connect Real-Debrid** | Device-code authorization for Real-Debrid |
+| **Authorize Trakt** | Device-code authorization for Trakt |
+| **Set TMDb API Key** | Save the TMDb key used for metadata lookup |
 | **Maintenance** | Clear cache/packages/thumbnails, reset build, force close |
 
 ### Maintenance tools
@@ -44,7 +47,7 @@ credentials:
 | **Clear Cache** | Deletes temporary cache files |
 | **Clear Packages** | Removes downloaded add-on `.zip` install files |
 | **Clear Thumbnails** | Clears cached artwork (rebuilds automatically) |
-| **Reset SoLoKodi Build** | Clears build selection + setup progress (keeps Real-Debrid/TMDb) |
+| **Reset SoLoKodi Build** | Clears build selection + setup progress (keeps Real-Debrid/Trakt/TMDb) |
 | **Force Close Kodi** | Closes Kodi to apply skin/build changes cleanly |
 
 ### Wizard steps (Kids build v1.3.0)
@@ -55,6 +58,16 @@ credentials:
 4. **Create shortcuts and home menu** — favourites plus Bello or Nimbus menu items for every kids source
 5. **Connect Real-Debrid** *(optional)* — device authorization flow
 6. **Add TMDb API key** *(optional)* — for Kids Real-Debrid discovery
+
+### Wizard steps (SoLoTV build v1.0.5)
+
+1. **Install SoLoTV repository** - adds the streaming repository
+2. **Install SoLoTV Build Wizard** - installs and patches the wizard
+3. **Create SoLoTV shortcuts** - favourites for setup and the build wizard
+4. **Connect Real-Debrid** *(optional)* - device authorization flow
+5. **Authorize Trakt** *(optional)* - device authorization flow
+6. **Add TMDb API key** *(optional)* - metadata support
+7. **Install SoLoTV interface** - opens the SoLoTV Build Wizard
 
 ## Update System
 

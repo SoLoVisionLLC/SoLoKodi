@@ -10,8 +10,13 @@ SoLoKodi Kids is the official-source profile: PBS Kids, TVO Kids, Pluto TV,
 NASA, and other kid add-ons from the Kodi repository.
 
 SoLoKids TV is a streaming build: it restores a rebranded SoLoTV-style
-interface and expects Real-Debrid for playback. It does not add family Trakt
-playlist menus.
+interface and expects Real-Debrid for playback. The Kids Movies and Kids TV
+home shortcuts open curated public Trakt lists:
+
+- Kids Movies: `tvgeniekodi/trending-kids-movies`
+- Kids TV: `mrspacegoose/kids-top-tv-shows`
+
+It does not add the personal "Your Trakt" menu from the adult SoLoTV profile.
 
 ## Build Assets
 

@@ -1,2 +1,2 @@
-SoLoKids TV 4K v1.0.0
+SoLoKids TV 4K v1.0.1
 - SoLoVision-branded build, maintained in the SoLoKodi repo.

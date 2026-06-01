@@ -10,10 +10,10 @@
     "tagline": "SoLoTV power, kid-friendly style."
   },
   "build": {
-    "description": "A SoLoTV streaming build cloned and rebranded for kids, with a kid-friendly interface, Real-Debrid-ready playback, and simple family browsing shortcuts.",
+    "description": "A SoLoTV streaming build cloned and rebranded for kids, with a kid-friendly interface, curated kids Trakt lists, Real-Debrid-ready playback, and simple family browsing shortcuts.",
     "id": "solokids-tv",
     "name": "SoLoKids TV",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "build_type": "streaming",
   "card_image": "solokids-tv.png",
@@ -28,7 +28,7 @@
       "name": "SoLoKids TV Build Wizard"
     }
   ],
-  "generated_at": "2026-05-31T20:24:21Z",
+  "generated_at": "2026-05-31T23:03:02Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/solokids-tv/manifest.json",
   "repository": {
     "id": "repository.solokodi",
@@ -41,7 +41,7 @@
   "setup_addon": {
     "id": "plugin.program.solokodi.setup",
     "name": "SoLoKodi Setup",
-    "version": "0.5.7"
+    "version": "0.5.8"
   },
   "setup_favourite": "SoLoKids TV Setup",
   "skin": {

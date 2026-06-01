@@ -39,7 +39,7 @@ class SoLoKidsTvBuildTests(unittest.TestCase):
         self.assertIn("SoLoKids TV", streaming_repo["wizard_label"])
         self.assertIn("SoLoKids TV", streaming_repo["recommended_build_hint"])
 
-    def test_build_script_has_solokids_tv_context_with_no_trakt_menu_actions(self):
+    def test_build_script_routes_solokids_tv_sections_to_curated_trakt_lists(self):
         build_script = load_build_script()
         context = build_script.load_build_context("solokids-tv")
 
@@ -53,12 +53,26 @@ class SoLoKidsTvBuildTests(unittest.TestCase):
         self.assertIn("SoLoKids TV Setup", labels)
         self.assertNotIn("Your Trakt", labels)
 
-        all_actions = [section["action"] for section in context.menu_sections]
+        actions_by_id = {section["id"]: section["action"] for section in context.menu_sections}
+        self.assertIn("info=trakt_userlist", actions_by_id["kidsmovies"])
+        self.assertIn("tmdb_type=movie", actions_by_id["kidsmovies"])
+        self.assertIn("user_slug=tvgeniekodi", actions_by_id["kidsmovies"])
+        self.assertIn("list_slug=trending-kids-movies", actions_by_id["kidsmovies"])
+        self.assertNotIn("info=dir_movie", actions_by_id["kidsmovies"])
+
+        self.assertIn("info=trakt_userlist", actions_by_id["kidstv"])
+        self.assertIn("tmdb_type=tv", actions_by_id["kidstv"])
+        self.assertIn("user_slug=mrspacegoose", actions_by_id["kidstv"])
+        self.assertIn("list_slug=kids-top-tv-shows", actions_by_id["kidstv"])
+        self.assertNotIn("info=dir_tv", actions_by_id["kidstv"])
+
+        all_actions = list(actions_by_id.values())
         for entries in context.submenus.values():
             all_actions.extend(action for _label, action in entries)
 
         joined_actions = "\n".join(all_actions).lower()
-        self.assertNotIn("trakt", joined_actions)
+        self.assertNotIn("info=dir_trakt", joined_actions)
+        self.assertNotIn("trakt_userlists", joined_actions)
 
 
 if __name__ == "__main__":

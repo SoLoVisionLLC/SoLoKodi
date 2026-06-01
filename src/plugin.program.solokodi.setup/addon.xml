@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.5.7" provider-name="SoLoVision">
+<addon id="plugin.program.solokodi.setup" name="SoLoKodi Setup" version="0.5.8" provider-name="SoLoVision">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -13,6 +13,6 @@
     <platform>all</platform>
     <license>MIT</license>
     <website>https://solokodi.sololink.cloud</website>
-    <news>v0.5.7 - Add SoLoKids TV, a kid-friendly SoLoTV clone with Real-Debrid setup and branded artwork.</news>
+    <news>v0.5.8 - Replace the Trakt token prompt with device-code authorization in setup.</news>
   </extension>
 </addon>

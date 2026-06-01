@@ -23,6 +23,7 @@ import sys
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlencode
 from urllib.request import urlopen
 from xml.sax.saxutils import escape
 
@@ -32,6 +33,7 @@ WIZARD_BUILD_INSTALL = (
     "addons/plugin.program.chef21/resources/lib/modules/build_install.py"
 )
 SKIN_SHORTCUTS_DIR = "userdata/addon_data/script.skinshortcuts"
+TMDB_HELPER_WIDGET_RELOAD = "$INFO[Window(Home).Property(TMDbHelper.Widgets.Reload)]"
 
 # Reuse the branding rules already used to rebrand the SoLoTV catalog.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -41,6 +43,35 @@ from mirror_solotv_repo import (  # noqa: E402
     SOLOKODI_SETUP_ADDON,
     TEXT_REPLACEMENTS,
     patch_wizard_build_install_code,
+)
+
+
+def tmdb_helper_trakt_list_action(user_slug: str, list_slug: str, tmdb_type: str, list_name: str) -> str:
+    query = urlencode(
+        {
+            "info": "trakt_userlist",
+            "tmdb_type": tmdb_type,
+            "user_slug": user_slug,
+            "list_slug": list_slug,
+            "list_name": list_name,
+            "widget": "true",
+            "reload": TMDB_HELPER_WIDGET_RELOAD,
+        }
+    )
+    return 'ActivateWindow(Videos,"plugin://plugin.video.themoviedb.helper/?{0}",return)'.format(query)
+
+
+SOLOKIDS_TV_MOVIES_ACTION = tmdb_helper_trakt_list_action(
+    "tvgeniekodi",
+    "trending-kids-movies",
+    "movie",
+    "Trending Kids Movies",
+)
+SOLOKIDS_TV_SHOWS_ACTION = tmdb_helper_trakt_list_action(
+    "mrspacegoose",
+    "kids-top-tv-shows",
+    "tv",
+    "Kids Top TV Shows",
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -228,13 +259,13 @@ SOLOKIDS_TV_MENU_SECTIONS = (
         "id": "kidsmovies",
         "label": "Kids Movies",
         "icon": "special://home/addons/resource.images.skinicons.wide/resources/clapperboard.png",
-        "action": 'ActivateWindow(Videos,"plugin://plugin.video.themoviedb.helper/?info=dir_movie&tmdb_type=None&reload=%24INFO%5BWindow%28Home%29.Property%28TMDbHelper.Widgets.Reload%29%5D&widget=true",return)',
+        "action": SOLOKIDS_TV_MOVIES_ACTION,
     },
     {
         "id": "kidstv",
         "label": "Kids TV",
         "icon": "special://home/addons/resource.images.skinicons.wide/resources/tv.png",
-        "action": 'ActivateWindow(Videos,"plugin://plugin.video.themoviedb.helper/?info=dir_tv&tmdb_type=None&reload=%24INFO%5BWindow%28Home%29.Property%28TMDbHelper.Widgets.Reload%29%5D&widget=true",return)',
+        "action": SOLOKIDS_TV_SHOWS_ACTION,
     },
     {
         "id": "livekids",
@@ -276,8 +307,8 @@ SOLOKIDS_TV_MENU_SECTIONS = (
 SOLOKIDS_TV_SUBMENUS = {
     "kidsmovies": (
         (
-            "Family Movies",
-            'ActivateWindow(Videos,"plugin://plugin.video.themoviedb.helper/?info=popular&tmdb_type=movie&widget=true&reload=%24INFO%5BWindow%28Home%29.Property%28TMDbHelper.Widgets.Reload%29%5D",return)',
+            "Trending Kids Movies",
+            SOLOKIDS_TV_MOVIES_ACTION,
         ),
         (
             "Animated Movies",
@@ -290,8 +321,8 @@ SOLOKIDS_TV_SUBMENUS = {
     ),
     "kidstv": (
         (
-            "Family Shows",
-            'ActivateWindow(Videos,"plugin://plugin.video.themoviedb.helper/?info=popular&tmdb_type=tv&widget=true&reload=%24INFO%5BWindow%28Home%29.Property%28TMDbHelper.Widgets.Reload%29%5D",return)',
+            "Kids Top TV Shows",
+            SOLOKIDS_TV_SHOWS_ACTION,
         ),
         (
             "Animated Shows",

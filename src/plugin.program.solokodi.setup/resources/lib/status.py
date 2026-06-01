@@ -131,8 +131,19 @@ def step_realdebrid():
 
 def step_trakt():
     setup = xbmcaddon.Addon()
-    complete = bool(setup.getSetting("trakt_api_token"))
-    return {"complete": complete, "missing": [] if complete else ["Trakt API token"], "label": "Trakt API token"}
+    complete = bool(setup.getSetting("trakt_access_token"))
+    username = setup.getSetting("trakt_username")
+    if not complete:
+        try:
+            seren = xbmcaddon.Addon("plugin.video.seren")
+            complete = bool(seren.getSetting("trakt.auth"))
+            username = username or seren.getSetting("trakt.username")
+        except RuntimeError:
+            pass
+    label = "Trakt account"
+    if username:
+        label = "Trakt account ({0})".format(username)
+    return {"complete": complete, "missing": [] if complete else ["Trakt authorization"], "label": label}
 
 
 def step_tmdb():

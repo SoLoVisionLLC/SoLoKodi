@@ -61,7 +61,19 @@ STREAMING_BUILDS = (
         "public_dir": PUBLIC / "solokids-tv",
         "zip_prefix": "solokids-tv",
         "labels": SOLOKIDS_TV_MAINMENU_LABELS,
-        "allow_trakt_menu": False,
+        "expected_trakt_markers": (
+            "info=trakt_userlist",
+            "user_slug=tvgeniekodi",
+            "list_slug=trending-kids-movies",
+            "user_slug=mrspacegoose",
+            "list_slug=kids-top-tv-shows",
+        ),
+        "forbidden_trakt_markers": (
+            "info=dir_trakt",
+            "trakt_userlists",
+            "trakt_inprogress",
+            "Your Trakt",
+        ),
     },
 )
 
@@ -222,7 +234,13 @@ def verify_setup_credential_steps() -> None:
     solokids_path = SRC / "builds" / "solokids-tv.json"
 
     settings = settings_path.read_text(encoding="utf-8")
-    for setting_id in ("trakt_api_token", "tmdb_api_key"):
+    for setting_id in (
+        "trakt_access_token",
+        "trakt_refresh_token",
+        "trakt_expires_at",
+        "trakt_username",
+        "tmdb_api_key",
+    ):
         if f'id="{setting_id}"' not in settings:
             fail(f"Setup settings are missing {setting_id}")
 
@@ -234,8 +252,13 @@ def verify_setup_credential_steps() -> None:
             fail(f"Setup wizard does not handle {step_id} credentials")
         if f'"{step_id}"' not in status_code:
             fail(f"Setup status does not track {step_id} credentials")
-    if "save_trakt_api_token" not in setup_code:
-        fail("Setup module is missing save_trakt_api_token")
+    if "def connect_trakt" not in setup_code:
+        fail("Setup module is missing connect_trakt")
+    for marker in ("oauth/device/code", "oauth/device/token"):
+        if marker not in setup_code:
+            fail(f"Setup Trakt auth is missing {marker}")
+    if "Enter your Trakt API token" in wizard:
+        fail("Setup wizard still prompts for a raw Trakt API token")
     if "save_tmdb_api_key" not in setup_code:
         fail("Setup module is missing save_tmdb_api_key")
 
@@ -244,6 +267,9 @@ def verify_setup_credential_steps() -> None:
     for step_id in ("trakt", "tmdb"):
         if step_id not in step_ids:
             fail(f"SoLoTV setup steps are missing optional {step_id}")
+    trakt_step = next(step for step in solotv.get("wizard_steps", []) if step["id"] == "trakt")
+    if "Authorize Trakt" not in trakt_step.get("label", "") or "API token" in trakt_step.get("label", ""):
+        fail("SoLoTV setup Trakt step must authorize Trakt instead of asking for an API token")
     if step_ids.index("trakt") > step_ids.index("launch_wizard"):
         fail("SoLoTV Trakt step must run before launching the Build Wizard")
     if step_ids.index("tmdb") > step_ids.index("launch_wizard"):
@@ -387,10 +413,14 @@ def verify_streaming_skin_menus() -> None:
                             f"{zip_path.name} {skin_id} main menu is missing "
                             f"{', '.join(missing)}"
                         )
-                    if not streaming["allow_trakt_menu"]:
-                        lowered = content.decode("utf-8", errors="replace").lower()
-                        if "trakt" in lowered:
-                            fail(f"{zip_path.name} {skin_id} contains a Trakt menu action")
+                    decoded = content.decode("utf-8", errors="replace")
+                    lowered = decoded.lower()
+                    for marker in streaming.get("expected_trakt_markers", ()):
+                        if marker.lower() not in lowered:
+                            fail(f"{zip_path.name} {skin_id} is missing curated Trakt marker {marker}")
+                    for marker in streaming.get("forbidden_trakt_markers", ()):
+                        if marker.lower() in lowered:
+                            fail(f"{zip_path.name} {skin_id} contains forbidden Trakt marker {marker}")
 
 
 def verify_streaming_build_versions() -> None:

@@ -2,22 +2,22 @@
 
 <build>
 <name>SoLoKids TV 4K</name>
-<version>1.0.0</version>
+<version>1.0.1</version>
 <kodi>K21</kodi>
-<url>https://solokodi.sololink.cloud/solokids-tv/builds/solokids-tv-1.0.0-K21.zip</url>
+<url>https://solokodi.sololink.cloud/solokids-tv/builds/solokids-tv-1.0.1-K21.zip</url>
 <icon>https://solokodi.sololink.cloud/solokids-tv/cards/solokids-tv.png</icon>
 <fanart>https://solokodi.sololink.cloud/solokids-tv/cards/solokids-tv.png</fanart>
-<description>SoLoKids TV 4K - a kid-friendly SoLoTV clone with Real-Debrid-ready streaming add-ons and family-first home shortcuts.</description>
+<description>SoLoKids TV 4K - a kid-friendly SoLoTV clone with curated kids Trakt lists, Real-Debrid-ready streaming add-ons, and family-first home shortcuts.</description>
 </build>
 
 <build>
 <name>SoLoKids TV 4K</name>
-<version>1.0.0</version>
+<version>1.0.1</version>
 <kodi>K22</kodi>
-<url>https://solokodi.sololink.cloud/solokids-tv/builds/solokids-tv-1.0.0-K22.zip</url>
+<url>https://solokodi.sololink.cloud/solokids-tv/builds/solokids-tv-1.0.1-K22.zip</url>
 <icon>https://solokodi.sololink.cloud/solokids-tv/cards/solokids-tv.png</icon>
 <fanart>https://solokodi.sololink.cloud/solokids-tv/cards/solokids-tv.png</fanart>
-<description>SoLoKids TV 4K - a kid-friendly SoLoTV clone with Real-Debrid-ready streaming add-ons and family-first home shortcuts.</description>
+<description>SoLoKids TV 4K - a kid-friendly SoLoTV clone with curated kids Trakt lists, Real-Debrid-ready streaming add-ons, and family-first home shortcuts.</description>
 </build>
 
 </builds>

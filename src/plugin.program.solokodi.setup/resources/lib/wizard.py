@@ -39,7 +39,7 @@ def _step_intro(step, manifest=None):
     repository_label = config.get("repository_label") or config.get("repository_id") or "streaming repository"
     intros = {
         "realdebrid": "Connect Real-Debrid so premium cached streams work in Xenon and other addons.",
-        "trakt": "Save your Trakt API token for supported streaming add-ons.",
+        "trakt": "Authorize Trakt with a device code for supported streaming features.",
         "tmdb": "Add a free TMDb API key for metadata lookups in SoLoKodi add-ons and supported skins.",
         "solotv_repo": "Adds the {0} file source and installs {1}.".format(build_name, repository_label),
         "solotv_wizard": "Installs {0} from the streaming repository.".format(wizard_label),
@@ -125,11 +125,10 @@ def run_trakt_step():
     from . import setup
 
     if status.step_trakt()["complete"]:
-        ok = xbmcgui.Dialog().yesno("Trakt", "Trakt API token is already saved. Enter a new one?")
+        ok = xbmcgui.Dialog().yesno("Trakt", "Trakt is already authorized. Reauthorize?")
         if not ok:
             return True
-    token = xbmcgui.Dialog().input("Enter your Trakt API token", type=xbmcgui.INPUT_ALPHANUM)
-    return setup.save_trakt_api_token(token)
+    return setup.connect_trakt()
 
 
 def run_tmdb_step():
