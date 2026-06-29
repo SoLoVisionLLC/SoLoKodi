@@ -8,19 +8,20 @@ This document is the project-local source of truth for Cloudflare, Coolify, and 
 | --- | --- |
 | Path | /Users/jeremysmith/Sandbox/SoLoKodi |
 | Git remote | https://github.com/SoLoVisionLLC/SoLoKodi.git |
-| Current branch | main |
+| Source branch used during generation | main |
 | Package | not detected |
 | Primary placement | coolify |
+| Supabase posture | not-detected |
 | Confidence | evidence-backed |
-| Generated | 2026-06-29T13:15:54.815Z |
+| Generated | 2026-06-29T19:47:49.765Z |
 
 Evidence sources from the central infrastructure workspace:
 
 - `outputs/domain-standards-audit.json`
 - `outputs/deep-live-domain-audit.json`
 - `outputs/current-domain-setup-report.json`
-- `outputs/live-coolify-applications.json`
-- `outputs/live-coolify-server-resources.json`
+- `outputs/coolify-app-inventory.json`
+- `outputs/cloudflare-all-domain-status.json`
 
 ## Operating Model
 
@@ -62,7 +63,7 @@ Detected Cloudflare/R2-related environment variable names:
 
 | Domain | Scope | Authority | Setup | Placement | Apex HTTP | WWW HTTP |
 | --- | --- | --- | --- | --- | --- | --- |
-| sololink.cloud | shared-infrastructure | cloudflare | Cloudflare active; 2 proxied web records | Shared infrastructure/Coolify access and preview namespace; not a normal product-domain offload target. | 308 | 308 |
+| sololink.cloud | shared-infrastructure | cloudflare | Cloudflare active; 2 proxied web records | access-protected / meets_standard | 308 | 308 |
 
 Standards audit:
 
@@ -82,7 +83,7 @@ Maintenance expectations:
 
 | Name | UUID | Status | Repo | Branch | Hostnames | Build Pack | Health Check |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| SoLoKodi | st0tr5f3gtroulbzyfj8vo8b | exited:unhealthy | SoLoVisionLLC/SoLoKodi | main | `solokodi.sololink.cloud` | dockerfile | /healthz |
+| SoLoKodi | st0tr5f3gtroulbzyfj8vo8b | exited:unhealthy | SoLoVisionLLC/SoLoKodi | main | `solokodi.sololink.cloud` |  |  |
 
 Critical route audit rows:
 
@@ -112,6 +113,7 @@ Maintenance expectations:
 | --- | --- |
 | Shared API URL | https://sb.solovisionllc.com |
 | Shared-env local source | /Users/jeremysmith/.config/solovision/supabase/shared.env (secret; never commit or print values) |
+| Posture | not-detected: no shared Supabase URL, registry, or Supabase env names detected by this pass |
 | Uses shared URL in repo | not detected |
 | Registry | not detected |
 | App IDs | not detected |
