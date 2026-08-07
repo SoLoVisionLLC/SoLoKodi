@@ -453,9 +453,12 @@ def _source_urls(source: dict) -> list[str]:
     return []
 
 
+from urllib.request import Request, urlopen
+
 def _download_one(url: str, dest: Path) -> None:
     print(f"  downloading {url}")
-    with urlopen(url, timeout=600) as response, open(dest, "wb") as handle:
+    req = Request(url, headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"})
+    with urlopen(req, timeout=600) as response, open(dest, "wb") as handle:
         total = int(response.headers.get("Content-Length") or 0)
         read = 0
         while True:

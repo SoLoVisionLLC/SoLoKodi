@@ -1,9 +1,12 @@
+import os
 import time
 
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
+
+from . import build_ops
 
 CACHE_DIR = "special://home/cache/"
 PACKAGES_DIR = "special://home/addons/packages/"
@@ -38,11 +41,12 @@ def _delete_contents(path):
 def clear_cache():
     if not xbmcgui.Dialog().yesno(
         "Clear Cache",
-        "Delete temporary cache files? This is safe and can free up space.",
+        "Delete temporary cache files and API database cache? This is safe and frees up space.",
     ):
         return
     removed = _delete_contents(CACHE_DIR)
-    _notify("Cleared {0} cache file(s)".format(removed))
+    build_ops.clean_cache_and_thumbnails()
+    _notify("Cleared {0} cache file(s) & local database".format(removed))
 
 
 def clear_packages():
@@ -83,7 +87,7 @@ def reset_build():
     setup.setSetting("build_version_installed", "")
 
     profile_dir = xbmcvfs.translatePath("special://profile/")
-    favourites = profile_dir.rstrip("/\\") + "/favourites.xml"
+    favourites = os.path.join(profile_dir.rstrip("/\\"), "favourites.xml")
     if xbmcvfs.exists(favourites):
         xbmcvfs.delete(favourites)
 

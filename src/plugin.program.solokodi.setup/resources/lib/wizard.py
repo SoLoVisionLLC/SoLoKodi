@@ -46,7 +46,6 @@ def _step_intro(step, manifest=None):
         "solotv_wizard": "Installs {0} from the streaming repository.".format(wizard_label),
         "launch_wizard": "Opens {0} to install the interface and streaming add-ons.".format(wizard_label),
     }
-    }
     required = "Required" if step.get("required", True) else "Optional"
     body = intros.get(step["id"], "Continue with this step?")
     return xbmcgui.Dialog().yesno(

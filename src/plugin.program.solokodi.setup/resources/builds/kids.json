@@ -10,7 +10,7 @@
     "tagline": "Safe, colorful, kid-first Kodi."
   },
   "build": {
-    "description": "Every official kids source pre-loaded in the home menu, fun theme, Real-Debrid kids streaming, Trakt integration, and one-tap shortcuts.",
+    "description": "Every official kids source pre-loaded in the home menu, fun theme, Real-Debrid kids streaming, and one-tap shortcuts.",
     "id": "kids",
     "name": "SoLoKodi Kids",
     "version": "1.3.2"
@@ -72,7 +72,7 @@
       "menu_group": "tvshows"
     }
   ],
-  "generated_at": "2026-08-07T21:47:03Z",
+  "generated_at": "2026-08-07T22:02:05Z",
   "manifest_url": "https://solokodi.sololink.cloud/builds/kids/manifest.json",
   "repository": {
     "id": "repository.solokodi",
@@ -160,11 +160,6 @@
     {
       "id": "realdebrid",
       "label": "Connect Real-Debrid",
-      "required": false
-    },
-    {
-      "id": "trakt",
-      "label": "Connect Trakt.tv",
       "required": false
     },
     {

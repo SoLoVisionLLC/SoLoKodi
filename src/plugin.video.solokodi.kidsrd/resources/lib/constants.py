@@ -1,6 +1,7 @@
 SETUP_ADDON_ID = "plugin.program.solokodi.setup"
 HTTP_HEADERS = {
     "Accept": "application/json",
+    "Accept-Encoding": "gzip, deflate",
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -11,7 +12,8 @@ HTTP_HEADERS = {
 RD_API_ROOT = "https://api.real-debrid.com/rest/1.0"
 RD_TOKEN_URL = "https://api.real-debrid.com/oauth/v2/token"
 TMDB_API_ROOT = "https://api.themoviedb.org/3"
-TMDB_IMAGE_ROOT = "https://image.tmdb.org/t/p/w500"
+TMDB_IMAGE_ROOT = "https://image.tmdb.org/t/p/w342"
+TMDB_IMAGE_ROOT_HD = "https://image.tmdb.org/t/p/w500"
 YTS_API_ROOTS = (
     "https://yts.mx/api/v2",
     "https://yts.lt/api/v2",

@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import xml.sax.saxutils
 
 import xbmc
@@ -372,15 +373,39 @@ def apply_advancedsettings():
         "  <network>\n"
         "    <curlclienttimeout>15</curlclienttimeout>\n"
         "    <curllowspeedtime>15</curllowspeedtime>\n"
+        "    <chunksize>131072</chunksize>\n"
         "  </network>\n"
         "  <gui>\n"
         "    <alwaystimeouttitle>true</alwaystimeouttitle>\n"
+        "    <maxfps>60</maxfps>\n"
         "  </gui>\n"
+        "  <videolibrary>\n"
+        "    <actorthumbsmax>10</actorthumbsmax>\n"
+        "  </videolibrary>\n"
         "</advancedsettings>\n"
     )
     with xbmcvfs.File(target, "w") as handle:
         handle.write(content)
     return target
+
+
+def clean_cache_and_thumbnails():
+    temp_dir = xbmcvfs.translatePath("special://temp/")
+    archive_cache = os.path.join(temp_dir, "archive_cache")
+    if os.path.exists(archive_cache):
+        try:
+            shutil.rmtree(archive_cache, ignore_errors=True)
+        except Exception:
+            pass
+
+    profile_dir = xbmcvfs.translatePath("special://profile/")
+    addon_data_cache = os.path.join(profile_dir, "addon_data", "plugin.video.solokodi.kidsrd", "cache.db")
+    if os.path.exists(addon_data_cache):
+        try:
+            os.remove(addon_data_cache)
+        except Exception:
+            pass
+    return True
 
 
 def sync_build_settings(manifest=None):
