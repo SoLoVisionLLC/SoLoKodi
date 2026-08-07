@@ -14,15 +14,11 @@ RD_DEVICE_URL = "https://api.real-debrid.com/oauth/v2/device/code"
 RD_CREDENTIALS_URL = "https://api.real-debrid.com/oauth/v2/device/credentials"
 RD_TOKEN_URL = "https://api.real-debrid.com/oauth/v2/token"
 RD_API_ROOT = "https://api.real-debrid.com/rest/1.0"
-TRAKT_CLIENT_ID = "264f8ecd14c879e372548c61545f1d27ff56fccfc043c4fa2a49346df4b6e36f"
+TRAKT_CLIENT_ID = "c55e97fb5825a07c39050d2bc4a8996e8d19356cb6d22efdf3f3edb9bd93ef53"
 TRAKT_CLIENT_SECRET = "435917b748d065e26786f5f9af20d1279269eb25aa16d51f4af14ee311d0247c"
 TRAKT_API_ROOT = "https://api.trakt.tv"
 TRAKT_DEVICE_URL = TRAKT_API_ROOT + "/oauth/device/code"
 TRAKT_TOKEN_URL = TRAKT_API_ROOT + "/oauth/device/token"
-
-TRAKT_CLIENT_ID = "c55e97fb5825a07c39050d2bc4a8996e8d19356cb6d22efdf3f3edb9bd93ef53"
-TRAKT_DEVICE_URL = "https://api.trakt.tv/oauth/device/code"
-TRAKT_TOKEN_URL = "https://api.trakt.tv/oauth/device/token"
 USER_AGENT = "SoLoKodi/1.1.0 (Kodi Build)"
 
 
@@ -224,11 +220,38 @@ def poll_for_trakt_token(device_code, interval, expires_in):
 
 
 def trakt_username(access_token):
+    if not access_token:
+        return ""
     try:
         user = request_json(TRAKT_API_ROOT + "/users/me", headers=trakt_headers(access_token))
     except (urllib.error.HTTPError, urllib.error.URLError, ValueError):
         return ""
     return user.get("username", "")
+
+
+def refresh_trakt_token():
+    refresh_token = ADDON.getSetting("trakt_refresh_token")
+    if not refresh_token:
+        return False
+    try:
+        token = request_json(
+            TRAKT_API_ROOT + "/oauth/token",
+            {
+                "refresh_token": refresh_token,
+                "client_id": TRAKT_CLIENT_ID,
+                "client_secret": TRAKT_CLIENT_SECRET,
+                "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+                "grant_type": "refresh_token",
+            },
+            headers=trakt_headers(),
+            json_body=True,
+        )
+        if token and token.get("access_token"):
+            save_trakt_oauth(token)
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def sync_seren_trakt_settings(token, username):
@@ -365,14 +388,33 @@ def clear_real_debrid():
     notify("Real-Debrid authorization cleared")
 
 
-
-
 def check_trakt():
     token = ADDON.getSetting("trakt_access_token")
     if not token:
-        xbmcgui.Dialog().ok("Trakt", "No Trakt authorization is saved in this Kodi profile.")
+        if xbmcgui.Dialog().yesno(
+            "Trakt Not Connected",
+            "No Trakt authorization is saved in this Kodi profile.\n\nWould you like to authorize Trakt now?",
+        ):
+            connect_trakt()
         return
-    xbmcgui.Dialog().ok("Trakt Connected", "Trakt authorization is active in this profile.")
+
+    username = trakt_username(token)
+    if not username:
+        if refresh_trakt_token():
+            token = ADDON.getSetting("trakt_access_token")
+            username = trakt_username(token)
+
+    if username:
+        xbmcgui.Dialog().ok(
+            "Trakt Connected",
+            "Trakt authorization is active.\n\nConnected as user: {0}".format(username),
+        )
+    else:
+        if xbmcgui.Dialog().yesno(
+            "Trakt 401 Unauthorized",
+            "Trakt authorization has expired or is invalid (HTTP 401).\n\nWould you like to re-authorize Trakt now?",
+        ):
+            connect_trakt()
 
 
 def clear_trakt():
@@ -380,4 +422,5 @@ def clear_trakt():
         return
     ADDON.setSetting("trakt_access_token", "")
     ADDON.setSetting("trakt_refresh_token", "")
+    ADDON.setSetting("trakt_username", "")
     notify("Trakt authorization cleared")
