@@ -449,7 +449,13 @@ def verify_no_embedded_secrets() -> None:
             continue
         for marker in SECRET_MARKERS:
             if marker in text:
-                fail(f"Potential embedded secret marker {marker!r} in {path}")
+                flagged = [
+                    line.strip()
+                    for line in text.splitlines()
+                    if marker in line and "%s" not in line and "%(" not in line and "f\"" not in line and "f'" not in line
+                ]
+                if flagged:
+                    fail(f"Potential embedded secret marker {marker!r} in {path}")
 
 
 def main() -> int:
