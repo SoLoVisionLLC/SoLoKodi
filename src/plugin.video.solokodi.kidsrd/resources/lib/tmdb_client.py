@@ -5,7 +5,10 @@ import urllib.request
 
 import xbmcaddon
 
+from .cache import cache
 from .constants import HTTP_HEADERS, SETUP_ADDON_ID, TMDB_API_ROOT, TMDB_IMAGE_ROOT
+
+USER_AGENT = "SoLoKodi/1.1.0 (Kodi Build)"
 
 
 class TmdbError(Exception):
@@ -33,14 +36,24 @@ class TmdbClient:
             raise TmdbError("Add your free TMDb API key in this add-on settings.")
         return key
 
-    def _request(self, path, params=None):
+    def _request(self, path, params=None, cache_ttl=3600):
         query = dict(params or {})
         query["api_key"] = self.api_key()
         url = TMDB_API_ROOT + path + "?" + urllib.parse.urlencode(query)
-        req = urllib.request.Request(url, headers=HTTP_HEADERS)
+
+        cache_key = "tmdb:" + url
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        req_headers = dict(HTTP_HEADERS)
+        req_headers["User-Agent"] = USER_AGENT
+        req = urllib.request.Request(url, headers=req_headers)
         try:
             with urllib.request.urlopen(req, timeout=20) as response:
-                return json.loads(response.read().decode("utf-8"))
+                result = json.loads(response.read().decode("utf-8"))
+                cache.set(cache_key, result, ttl=cache_ttl)
+                return result
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="ignore")
             raise TmdbError("TMDb request failed: HTTP {0}".format(exc.code)) from exc
@@ -60,6 +73,7 @@ class TmdbClient:
                 "page": page,
                 "include_adult": "false",
             },
+            cache_ttl=1800,
         )
 
     def discover_kids_tv(self, page=1, modern_only=False):
@@ -71,13 +85,13 @@ class TmdbClient:
         }
         if modern_only:
             params["first_air_date.gte"] = "2015-01-01"
-        return self._request("/discover/tv", params)
+        return self._request("/discover/tv", params, cache_ttl=1800)
 
     def movie_details(self, movie_id):
-        return self._request("/movie/{0}".format(movie_id), {"append_to_response": "external_ids"})
+        return self._request("/movie/{0}".format(movie_id), {"append_to_response": "external_ids"}, cache_ttl=86400)
 
     def tv_details(self, tv_id):
-        return self._request("/tv/{0}".format(tv_id), {"append_to_response": "external_ids"})
+        return self._request("/tv/{0}".format(tv_id), {"append_to_response": "external_ids"}, cache_ttl=86400)
 
     @staticmethod
     def poster_url(path):

@@ -106,9 +106,14 @@ def show_menu():
         "Confirm that the local Real-Debrid token works.",
     )
     add_item(
-        "Authorize Trakt",
-        "set_trakt",
-        "Authorize this Kodi profile with Trakt using the device flow.",
+        "Connect Trakt.tv",
+        "connect_trakt",
+        "Authorize Trakt.tv to sync watchlists and collections.",
+    )
+    add_item(
+        "Check Trakt Account",
+        "check_trakt",
+        "Confirm that Trakt authorization is active.",
     )
     add_item(
         "Set TMDb API Key",
@@ -127,6 +132,11 @@ def show_menu():
         "Clear Real-Debrid Authorization",
         "clear_rd",
         "Remove Real-Debrid credentials from this Kodi profile.",
+    )
+    add_item(
+        "Clear Trakt Authorization",
+        "clear_trakt",
+        "Remove Trakt credentials from this profile.",
     )
     add_item(
         "Clear API Tokens",
@@ -214,11 +224,15 @@ def run():
         xbmc.executebuiltin("ActivateWindow(Videos,plugin://plugin.video.solokodi.kidsrd/,return)")
     elif action == "check_rd":
         setup.check_real_debrid()
-    elif action == "set_trakt":
+    elif action in ("set_trakt", "connect_trakt"):
         wizard.run_trakt_step()
+    elif action == "check_trakt":
+        setup.check_trakt()
+    elif action == "clear_trakt":
+        setup.clear_trakt()
     elif action == "set_tmdb":
         wizard.run_tmdb_step()
-    elif action == "parent_tips":
+    elif action in ("parent_tips", "lock_checklist"):
         setup.show_parent_tips()
     elif action == "clear_rd":
         setup.clear_real_debrid()

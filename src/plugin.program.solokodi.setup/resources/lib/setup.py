@@ -20,21 +20,28 @@ TRAKT_API_ROOT = "https://api.trakt.tv"
 TRAKT_DEVICE_URL = TRAKT_API_ROOT + "/oauth/device/code"
 TRAKT_TOKEN_URL = TRAKT_API_ROOT + "/oauth/device/token"
 
+TRAKT_CLIENT_ID = "c55e97fb5825a07c39050d2bc4a8996e8d19356cb6d22efdf3f3edb9bd93ef53"
+TRAKT_DEVICE_URL = "https://api.trakt.tv/oauth/device/code"
+TRAKT_TOKEN_URL = "https://api.trakt.tv/oauth/device/token"
+USER_AGENT = "SoLoKodi/1.1.0 (Kodi Build)"
+
 
 def notify(message, heading="SoLoKodi Kids"):
     xbmcgui.Dialog().notification(heading, message, xbmcgui.NOTIFICATION_INFO, 5000)
 
 
-def request_json(url, data=None, headers=None, json_body=False):
+def request_json(url, data=None, headers=None, json_body=False, method=None):
+    request_headers = {"User-Agent": USER_AGENT}
+    if headers:
+        request_headers.update(headers)
     body = None
-    request_headers = dict(headers or {})
     if data is not None:
-        if json_body:
+        if json_body or (headers and headers.get("Content-Type") == "application/json"):
             body = json.dumps(data).encode("utf-8")
             request_headers.setdefault("Content-Type", "application/json")
         else:
             body = urllib.parse.urlencode(data).encode("utf-8")
-    req = urllib.request.Request(url, data=body, headers=request_headers)
+    req = urllib.request.Request(url, data=body, headers=request_headers, method=method)
     with urllib.request.urlopen(req, timeout=20) as response:
         raw = response.read().decode("utf-8")
     return json.loads(raw) if raw else {}
@@ -50,7 +57,7 @@ def show_parent_tips():
                 "Optional ideas if you share this device with adults:",
                 "1. Create a separate Kids profile in Kodi.",
                 "2. Use Master Lock if you want to hide settings from little hands.",
-                "3. Real-Debrid (optional) powers Kids Real-Debrid streaming.",
+                "3. Real-Debrid and Trakt power streaming and sync.",
                 "",
                 "Use Setup Wizard anytime to repair shortcuts or finish optional steps.",
             ]
@@ -356,3 +363,21 @@ def clear_real_debrid():
     for key in ("rd_client_id", "rd_client_secret", "rd_access_token", "rd_refresh_token", "rd_expires_at"):
         ADDON.setSetting(key, "")
     notify("Real-Debrid authorization cleared")
+
+
+
+
+def check_trakt():
+    token = ADDON.getSetting("trakt_access_token")
+    if not token:
+        xbmcgui.Dialog().ok("Trakt", "No Trakt authorization is saved in this Kodi profile.")
+        return
+    xbmcgui.Dialog().ok("Trakt Connected", "Trakt authorization is active in this profile.")
+
+
+def clear_trakt():
+    if not xbmcgui.Dialog().yesno("Trakt", "Remove saved Trakt credentials from this profile?"):
+        return
+    ADDON.setSetting("trakt_access_token", "")
+    ADDON.setSetting("trakt_refresh_token", "")
+    notify("Trakt authorization cleared")

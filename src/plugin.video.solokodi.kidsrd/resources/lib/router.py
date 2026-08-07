@@ -12,6 +12,7 @@ from .player import KidsPlayer
 from .rd_client import RealDebridAuthError, RealDebridClient, RealDebridError
 from .resolver import ResolverError
 from .tmdb_client import TmdbClient, TmdbError
+from .trakt_client import TraktAuthError, TraktClient, TraktError
 
 ADDON = xbmcaddon.Addon()
 ADDON_URL = sys.argv[0]
@@ -24,8 +25,11 @@ def build_url(**params):
 
 
 def finish_directory(succeeded=True):
-    xbmcplugin.setContent(HANDLE, "videos")
-    xbmcplugin.endOfDirectory(HANDLE, succeeded=succeeded)
+    try:
+        xbmcplugin.setContent(HANDLE, "videos")
+        xbmcplugin.endOfDirectory(HANDLE, succeeded=succeeded)
+    except Exception:
+        pass
 
 
 def end_directory():
@@ -148,6 +152,16 @@ def show_root_menu():
         "Recent kids and family series — Bluey, Gabby's Dollhouse, and more.",
         action="discover_tv_modern",
         page=1,
+    )
+    add_folder(
+        "My Trakt Watchlist",
+        "Movies and shows saved in your Trakt watchlist.",
+        action="trakt_watchlist",
+    )
+    add_folder(
+        "My Trakt Collection",
+        "Titles collected in your Trakt account.",
+        action="trakt_collection",
     )
     add_folder(
         "All Real-Debrid Torrents",
@@ -338,6 +352,60 @@ def show_discover_tv(page, modern_only=False):
     end_directory()
 
 
+def show_trakt_watchlist():
+    try:
+        trakt = TraktClient()
+        items = trakt.get_user_watchlist("movies") or []
+        if not items:
+            xbmcgui.Dialog().ok("Trakt Watchlist", "No titles found in your Trakt watchlist.")
+            end_directory()
+            return
+
+        for entry in items:
+            movie = entry.get("movie") or {}
+            title = movie.get("title") or "Movie"
+            year = movie.get("year") or ""
+            label = "{0} ({1})".format(title, year) if year else title
+            ids = movie.get("ids") or {}
+            add_action(
+                label,
+                "Trakt Watchlist Item",
+                action="play_movie",
+                tmdb_id=ids.get("tmdb", ""),
+            )
+        end_directory()
+    except (TraktAuthError, TraktError) as exc:
+        xbmcgui.Dialog().ok("Trakt Error", str(exc))
+        end_directory()
+
+
+def show_trakt_collection():
+    try:
+        trakt = TraktClient()
+        items = trakt.get_user_collection("movies") or []
+        if not items:
+            xbmcgui.Dialog().ok("Trakt Collection", "No titles found in your Trakt collection.")
+            end_directory()
+            return
+
+        for entry in items:
+            movie = entry.get("movie") or {}
+            title = movie.get("title") or "Movie"
+            year = movie.get("year") or ""
+            label = "{0} ({1})".format(title, year) if year else title
+            ids = movie.get("ids") or {}
+            add_action(
+                label,
+                "Trakt Collection Item",
+                action="play_movie",
+                tmdb_id=ids.get("tmdb", ""),
+            )
+        end_directory()
+    except (TraktAuthError, TraktError) as exc:
+        xbmcgui.Dialog().ok("Trakt Error", str(exc))
+        end_directory()
+
+
 def handle_play_movie(tmdb_id):
     if not require_real_debrid():
         return
@@ -396,36 +464,45 @@ def handle_play_download(link):
 
 
 def run():
-    params = urllib.parse.parse_qs(sys.argv[2][1:])
-    action = params.get("action", ["menu"])[0]
-    page = int(params.get("page", ["1"])[0])
+    try:
+        params = urllib.parse.parse_qs(sys.argv[2][1:])
+        action = params.get("action", ["menu"])[0]
+        page = int(params.get("page", ["1"])[0])
 
-    if action == "status":
-        show_status()
-    elif action == "library_kids":
-        show_library(kids_only=True)
-    elif action == "library_all":
-        show_library(kids_only=False)
-    elif action == "discover_movies":
-        show_discover_movies(page)
-    elif action == "discover_tv":
-        show_discover_tv(page, modern_only=False)
-    elif action == "discover_tv_modern":
-        show_discover_tv(page, modern_only=True)
-    elif action == "torrent_files":
-        show_torrent_files(params.get("torrent_id", [""])[0])
-    elif action == "play_movie":
-        handle_play_movie(params.get("tmdb_id", [""])[0])
-    elif action == "play_tv":
-        handle_play_tv(params.get("tmdb_id", [""])[0])
-    elif action == "play_torrent":
-        handle_play_torrent(params.get("torrent_id", [""])[0])
-    elif action == "play_torrent_file":
-        handle_play_torrent_file(
-            params.get("torrent_id", [""])[0],
-            params.get("file_id", [""])[0],
-        )
-    elif action == "play_download":
-        handle_play_download(params.get("link", [""])[0])
-    else:
-        show_root_menu()
+        if action == "status":
+            show_status()
+        elif action == "library_kids":
+            show_library(kids_only=True)
+        elif action == "library_all":
+            show_library(kids_only=False)
+        elif action == "discover_movies":
+            show_discover_movies(page)
+        elif action == "discover_tv":
+            show_discover_tv(page, modern_only=False)
+        elif action == "discover_tv_modern":
+            show_discover_tv(page, modern_only=True)
+        elif action == "trakt_watchlist":
+            show_trakt_watchlist()
+        elif action == "trakt_collection":
+            show_trakt_collection()
+        elif action == "torrent_files":
+            show_torrent_files(params.get("torrent_id", [""])[0])
+        elif action == "play_movie":
+            handle_play_movie(params.get("tmdb_id", [""])[0])
+        elif action == "play_tv":
+            handle_play_tv(params.get("tmdb_id", [""])[0])
+        elif action == "play_torrent":
+            handle_play_torrent(params.get("torrent_id", [""])[0])
+        elif action == "play_torrent_file":
+            handle_play_torrent_file(
+                params.get("torrent_id", [""])[0],
+                params.get("file_id", [""])[0],
+            )
+        elif action == "play_download":
+            handle_play_download(params.get("link", [""])[0])
+        else:
+            show_root_menu()
+    except Exception as exc:
+        xbmcgui.Dialog().ok("SoLoKodi Error", "An error occurred: {0}".format(exc))
+    finally:
+        end_directory()

@@ -4,25 +4,39 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from .cache import cache
 from .constants import APIBAY_API_ROOTS, HTTP_HEADERS, YTS_API_ROOTS
 from .kids_filter import normalize_title
+
+USER_AGENT = "SoLoKodi/1.1.0 (Kodi Build)"
 
 
 class ResolverError(Exception):
     pass
 
 
-def _request_json(url):
-    req = urllib.request.Request(url, headers=HTTP_HEADERS)
+def _request_json(url, cache_ttl=86400):
+    cache_key = "yts:" + url
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    req_headers = dict(HTTP_HEADERS)
+    req_headers["User-Agent"] = USER_AGENT
+    req = urllib.request.Request(url, headers=req_headers)
     try:
         with urllib.request.urlopen(req, timeout=20) as response:
-            return json.loads(response.read().decode("utf-8"))
+            result = json.loads(response.read().decode("utf-8"))
+            cache.set(cache_key, result, ttl=cache_ttl)
+            return result
     except urllib.error.HTTPError as exc:
         raise ResolverError("Lookup failed: HTTP {0}".format(exc.code)) from exc
     except urllib.error.URLError as exc:
         raise ResolverError("Could not reach torrent lookup service. Check your internet connection.") from exc
     except (TimeoutError, json.JSONDecodeError) as exc:
         raise ResolverError("Torrent lookup failed: {0}".format(exc)) from exc
+    except Exception as exc:
+        raise ResolverError("Network error during lookup: {0}".format(exc)) from exc
 
 
 def _request_json_first(urls):

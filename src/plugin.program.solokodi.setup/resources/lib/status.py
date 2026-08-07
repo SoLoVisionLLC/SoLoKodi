@@ -1,3 +1,5 @@
+import os
+
 import xbmcaddon
 import xbmcvfs
 
@@ -71,7 +73,7 @@ def step_favourites():
         return {"complete": True, "missing": [], "label": "Home shortcuts"}
 
     profile_dir = xbmcvfs.translatePath("special://profile/")
-    target = profile_dir.rstrip("/\\") + "/favourites.xml"
+    target = os.path.join(profile_dir.rstrip("/\\"), "favourites.xml")
     if not xbmcvfs.exists(target):
         return {"complete": False, "missing": ["shortcuts"], "label": "Home shortcuts"}
 
@@ -123,6 +125,13 @@ def step_launch_wizard():
     return {"complete": True, "missing": [], "label": label}
 
 
+def step_advancedsettings():
+    profile_dir = xbmcvfs.translatePath("special://profile/")
+    target = os.path.join(profile_dir.rstrip("/\\"), "advancedsettings.xml")
+    complete = xbmcvfs.exists(target)
+    return {"complete": complete, "missing": [] if complete else ["advancedsettings.xml"], "label": "Performance Settings"}
+
+
 def step_realdebrid():
     setup = xbmcaddon.Addon()
     complete = bool(setup.getSetting("rd_access_token"))
@@ -162,6 +171,7 @@ STEP_CHECKS = {
     "solokodi_addons": step_solokodi_addons,
     "theme": step_theme,
     "favourites": step_favourites,
+    "advancedsettings": step_advancedsettings,
     "realdebrid": step_realdebrid,
     "trakt": step_trakt,
     "tmdb": step_tmdb,

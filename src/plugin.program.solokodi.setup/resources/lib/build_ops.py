@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import xml.sax.saxutils
 
@@ -352,9 +353,33 @@ def build_favourites_xml(manifest=None):
 def write_favourites(manifest=None):
     manifest = manifest or build_config.load_embedded_manifest()
     profile_dir = xbmcvfs.translatePath("special://profile/")
-    target = profile_dir.rstrip("/\\") + "/favourites.xml"
+    target = os.path.join(profile_dir.rstrip("/\\"), "favourites.xml")
     with xbmcvfs.File(target, "w") as handle:
         handle.write(build_favourites_xml(manifest))
+    return target
+
+
+def apply_advancedsettings():
+    profile_dir = xbmcvfs.translatePath("special://profile/")
+    target = os.path.join(profile_dir.rstrip("/\\"), "advancedsettings.xml")
+    content = (
+        "<advancedsettings>\n"
+        "  <cache>\n"
+        "    <buffermode>1</buffermode>\n"
+        "    <memorysize>157286400</memorysize>\n"
+        "    <readfactor>20</readfactor>\n"
+        "  </cache>\n"
+        "  <network>\n"
+        "    <curlclienttimeout>15</curlclienttimeout>\n"
+        "    <curllowspeedtime>15</curllowspeedtime>\n"
+        "  </network>\n"
+        "  <gui>\n"
+        "    <alwaystimeouttitle>true</alwaystimeouttitle>\n"
+        "  </gui>\n"
+        "</advancedsettings>\n"
+    )
+    with xbmcvfs.File(target, "w") as handle:
+        handle.write(content)
     return target
 
 

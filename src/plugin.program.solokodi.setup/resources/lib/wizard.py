@@ -38,12 +38,14 @@ def _step_intro(step, manifest=None):
     wizard_label = config.get("wizard_label") or "{0} Build Wizard".format(build_name)
     repository_label = config.get("repository_label") or config.get("repository_id") or "streaming repository"
     intros = {
-        "realdebrid": "Connect Real-Debrid so premium cached streams work in Xenon and other addons.",
-        "trakt": "Authorize Trakt with a device code for supported streaming features.",
-        "tmdb": "Add a free TMDb API key for metadata lookups in SoLoKodi add-ons and supported skins.",
+        "realdebrid": "Connect Real-Debrid so premium cached streams work.",
+        "trakt": "Connect Trakt.tv to sync your watchlist and collection across devices.",
+        "tmdb": "Add a free TMDb API key for metadata lookups.",
+        "advancedsettings": "Apply optimal buffer and network settings to prevent stuttering and slow playback.",
         "solotv_repo": "Adds the {0} file source and installs {1}.".format(build_name, repository_label),
         "solotv_wizard": "Installs {0} from the streaming repository.".format(wizard_label),
         "launch_wizard": "Opens {0} to install the interface and streaming add-ons.".format(wizard_label),
+    }
     }
     required = "Required" if step.get("required", True) else "Optional"
     body = intros.get(step["id"], "Continue with this step?")
@@ -110,6 +112,12 @@ def run_favourites_step(manifest, progress, index, total):
     menu_ready = menu_layout.apply_kids_home_menu(manifest)
     build_ops.sync_build_settings(manifest)
     return menu_ready
+
+
+def run_advancedsettings_step(manifest, progress, index, total):
+    progress.update(int((index / total) * 100), "Applying performance settings...")
+    build_ops.apply_advancedsettings()
+    return True
 
 
 def run_realdebrid_step():
@@ -181,6 +189,9 @@ def run_setup_wizard():
             menu_ready = run_favourites_step(manifest, progress, index, total)
             detail = [] if menu_ready else ["shortcuts not configured"]
             results.append((step["label"], menu_ready, detail))
+        elif step_id == "advancedsettings":
+            run_advancedsettings_step(manifest, progress, index, total)
+            results.append((step["label"], True, []))
         elif step_id == "solotv_repo":
             config = build_config.streaming_repo_config(manifest)
             repository_label = config.get("repository_label") or config.get("repository_id") or "streaming repository"
@@ -303,8 +314,6 @@ def run_change_skin():
             "For Nimbus, make sure Kodi can reach ivarbrandt.github.io, then try "
             "Repair Build or restart Kodi.".format(label),
         )
-
-
 def run_quick_repair():
     manifest = build_config.load_embedded_manifest()
     build = build_config.build_info(manifest)
@@ -320,6 +329,7 @@ def run_quick_repair():
         progress.update(70, "Refreshing {0} shortcuts...".format(build.get("name", "streaming build")))
         build_ops.apply_theme(manifest)
         build_ops.write_favourites(manifest)
+        build_ops.apply_advancedsettings()
     else:
         progress.update(20, "Installing missing add-ons...")
         build_ops.install_addons(build_config.content_addons(manifest))
@@ -327,6 +337,7 @@ def run_quick_repair():
         progress.update(55, "Refreshing theme, shortcuts, and home menu...")
         build_ops.apply_theme(manifest)
         build_ops.write_favourites(manifest)
+        build_ops.apply_advancedsettings()
         menu_layout.apply_kids_home_menu(manifest)
     build_ops.sync_build_settings(manifest)
     progress.update(100, "Done")
@@ -335,5 +346,5 @@ def run_quick_repair():
     notify("Build repaired", manifest=manifest)
     xbmcgui.Dialog().ok(
         "Repair Build",
-        "Your {0} shortcuts, theme, and add-ons were refreshed.".format(build.get("name", "build")),
+        "Your {0} shortcuts, theme, performance settings, and add-ons were refreshed.".format(build.get("name", "build")),
     )

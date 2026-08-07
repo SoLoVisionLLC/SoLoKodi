@@ -6,7 +6,10 @@ import urllib.request
 
 import xbmcaddon
 
+from .cache import cache
 from .constants import HTTP_HEADERS, RD_API_ROOT, RD_TOKEN_URL, SETUP_ADDON_ID
+
+USER_AGENT = "SoLoKodi/1.1.0 (Kodi Build)"
 
 
 class RealDebridError(Exception):
@@ -17,27 +20,43 @@ class RealDebridAuthError(RealDebridError):
     pass
 
 
-def _request_json(url, data=None, headers=None, method=None):
+def _request_json(url, data=None, headers=None, method=None, use_cache=False, cache_ttl=120):
+    req_headers = dict(HTTP_HEADERS)
+    req_headers["User-Agent"] = USER_AGENT
+    if headers:
+        req_headers.update(headers)
+
+    cache_key = "rd:" + url + ":" + str(data)
+    if use_cache and data is None and method in (None, "GET"):
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
     body = None
     if data is not None:
         body = urllib.parse.urlencode(data).encode("utf-8")
-    merged_headers = dict(HTTP_HEADERS)
-    if headers:
-        merged_headers.update(headers)
-    req = urllib.request.Request(url, data=body, headers=merged_headers, method=method)
+
+    req = urllib.request.Request(url, data=body, headers=req_headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=30) as response:
             raw = response.read().decode("utf-8")
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore")
+        if exc.code in (401, 403):
+            raise RealDebridAuthError("HTTP {0}: Real-Debrid authorization error.".format(exc.code)) from exc
         raise RealDebridError("HTTP {0}: {1}".format(exc.code, detail or exc.reason)) from exc
     except urllib.error.URLError as exc:
         raise RealDebridError("Could not reach Real-Debrid. Check your internet connection.") from exc
     except (TimeoutError, json.JSONDecodeError) as exc:
         raise RealDebridError("Real-Debrid request failed: {0}".format(exc)) from exc
+    except Exception as exc:
+        raise RealDebridError("Network error: {0}".format(exc)) from exc
     if not raw:
         return {}
-    return json.loads(raw)
+    parsed = json.loads(raw)
+    if use_cache and data is None and method in (None, "GET"):
+        cache.set(cache_key, parsed, ttl=cache_ttl)
+    return parsed
 
 
 class RealDebridClient:
@@ -100,19 +119,25 @@ class RealDebridClient:
         return _request_json(RD_API_ROOT + "/user", headers=self._headers())
 
     def list_torrents(self):
-        return _request_json(RD_API_ROOT + "/torrents", headers=self._headers())
+        return _request_json(RD_API_ROOT + "/torrents", headers=self._headers(), use_cache=True, cache_ttl=120)
 
     def list_downloads(self):
-        return _request_json(RD_API_ROOT + "/downloads", headers=self._headers())
+        return _request_json(RD_API_ROOT + "/downloads", headers=self._headers(), use_cache=True, cache_ttl=120)
 
     def get_torrent(self, torrent_id):
         return _request_json(RD_API_ROOT + "/torrents/info/" + str(torrent_id), headers=self._headers())
 
     def instant_available(self, info_hash):
         info_hash = info_hash.lower()
-        return _request_json(RD_API_ROOT + "/torrents/instantAvailability/" + info_hash, headers=self._headers())
+        return _request_json(
+            RD_API_ROOT + "/torrents/instantAvailability/" + info_hash,
+            headers=self._headers(),
+            use_cache=True,
+            cache_ttl=3600,
+        )
 
     def add_magnet(self, magnet):
+        cache.clear()
         return _request_json(
             RD_API_ROOT + "/torrents/addMagnet",
             data={"magnet": magnet},
