@@ -274,6 +274,29 @@ def _trakt_expires_at(token):
     return str(created_at + int(token.get("expires_in", 0)))
 
 
+def sync_acctmgr_trakt_settings(token, username):
+    try:
+        acctmgr = xbmcaddon.Addon("script.module.acctmgr")
+    except RuntimeError:
+        return False
+
+    access_token = token.get("access_token", "")
+    refresh_token = token.get("refresh_token", "")
+    expires_at = _trakt_expires_at(token)
+
+    acctmgr.setSetting("trakt.token", access_token)
+    acctmgr.setSetting("trakt.refresh", refresh_token)
+    acctmgr.setSetting("trakt.expires", expires_at)
+    acctmgr.setSetting("trakt.username", username)
+
+    try:
+        from acctmgr.modules.sync import trakt_sync
+        trakt_sync.Auth().trakt_auth(mode="auth")
+    except Exception:
+        pass
+    return True
+
+
 def save_trakt_oauth(token):
     access_token = token.get("access_token", "")
     if not access_token:
@@ -288,6 +311,7 @@ def save_trakt_oauth(token):
     ADDON.setSetting("trakt_username", username)
     ADDON.setSetting("trakt_api_token", access_token)
     sync_seren_trakt_settings(token, username)
+    sync_acctmgr_trakt_settings(token, username)
     return True
 
 
@@ -390,6 +414,21 @@ def clear_real_debrid():
 
 def check_trakt():
     token = ADDON.getSetting("trakt_access_token")
+    if not token:
+        try:
+            acctmgr = xbmcaddon.Addon("script.module.acctmgr")
+            token = acctmgr.getSetting("trakt.token")
+            if token:
+                refresh_tok = acctmgr.getSetting("trakt.refresh")
+                expires_at = acctmgr.getSetting("trakt.expires")
+                username = acctmgr.getSetting("trakt.username")
+                ADDON.setSetting("trakt_access_token", token)
+                ADDON.setSetting("trakt_refresh_token", refresh_tok)
+                ADDON.setSetting("trakt_expires_at", expires_at)
+                ADDON.setSetting("trakt_username", username)
+        except RuntimeError:
+            pass
+
     if not token:
         if xbmcgui.Dialog().yesno(
             "Trakt Not Connected",
